@@ -1,20 +1,20 @@
 # ESPECIFICACIÓN DE REQUERIMIENTOS DE SOFTWARE (SRS) - MVP
 ## Estándar IEEE 830 / ISO/IEC/IEEE 29148 / OWASP Top 10
-### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Centro de Operaciones (SOC)
+### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad, Medición de Horas Utilizadas de TI y Centro de Operaciones (SOC)
 
 ---
 
 ## 1. Introducción y Propósito del Sistema
 
 ### 1.1 Naturaleza del Producto: Producto Mínimo Viable (MVP)
-El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebido para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda bajo **estándares internacionales de ciberseguridad (OWASP Top 10 / ISO 27001)** y con un **Centro de Control de Operaciones y Seguridad (SOC)**.
+El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebido para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda bajo **estándares internacionales de ciberseguridad (OWASP Top 10 / ISO 27001)**, medición exacta de **horas de soporte TI utilizadas** y un **Centro de Control de Operaciones y Seguridad (SOC)**.
 
 ### 1.2 Justificación Operativa y Problemática Raíz
 El diseño de los requerimientos de este MVP responde a la mitigación directa de cinco dolores operacionales y de seguridad críticos:
-1. **Ineficiencia Crítica del Soporte Técnico TI:** En sistemas convencionales, los técnicos perdían hasta 1 hora en sitio esperando a expositores retrasados para entregar equipos. La solución implementa **Check-in/out por QR móvil** que valida el acceso y entrega de equipamiento en menos de 30 segundos.
+1. **Ineficiencia Crítica y Falta de Registro de Horas de TI:** En sistemas convencionales, los técnicos perdían hasta 1 hora en sitio esperando a expositores retrasados sin registrar el tiempo real utilizado. La solución implementa **Check-in/out por QR móvil** que valida el acceso en menos de 30 segundos y computa con precisión matemática las **horas hombre de TI utilizadas por evento**.
 2. **Falta de Coordinación con Servicios de Apoyo:** Personal de aseo y guardia no recibía la información a tiempo para planificar limpieza y aperturas. La solución integra **difusión automática por áreas (`EmailSubscription`)**.
 3. **Cancelaciones Imprevistas y No-Shows:** Profesores solicitaban el auditorio a última hora o no se presentaban. La solución introduce **confirmación anticipada por token sin login** y el **algoritmo de penalización de prioridad (*PriorityScore*)**.
-4. **Carencia de Métricas Cuantitativas:** Históricamente solo existían quejas subjetivas. La solución incorpora un **Dashboard de Analítica en tiempo real** y una **Encuesta de Calidad por Estrellas (1-5)** con cálculo de Net Promoter Score (NPS) y horas de ocupación efectiva.
+4. **Carencia de Métricas Cuantitativas:** Históricamente solo existían quejas subjetivas. La solución incorpora un **Dashboard de Analítica en tiempo real** con balance de horas utilizadas de TI, tasas de ocupación efectiva y **Encuesta de Calidad por Estrellas (1-5)** con cálculo de Net Promoter Score (NPS).
 5. **Ceguera de Seguridad y Falta de Observabilidad (SOC):** Inexistencia de registros de accesos no autorizados, ataques de fuerza bruta o intentos de fraude. La solución incorpora un **Centro de Control de Ciberseguridad (SOC Dashboard)** con telemetría en tiempo real y bitácora de auditoría inmutable.
 
 ---
@@ -24,8 +24,8 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 | Rol | Identificador | Nivel | Responsabilidades y Alcance Operativo |
 | :--- | :---: | :---: | :--- |
 | **Super Administrador** | `OWNER` | 6 | Control total del sistema, auditoría de logs, bypass de contingencia (`MASTER-CODE`), Centro de Control SOC y configuración de plataforma. |
-| **Administrador TI** | `IT_ADMIN` | 5 | Gestión técnica, catálogo de inventario audiovisual, asignación de técnicos, acceso a telemetría y analítica de métricas. |
-| **Soporte Técnico en Terreno** | `IT_SERVICE` | 4 | Validación física de llegada de expositores mediante escaneo QR móvil en < 30s, entrega y recepción de equipamiento. |
+| **Administrador TI** | `IT_ADMIN` | 5 | Gestión técnica, catálogo de inventario audiovisual, asignación de técnicos, balance de horas utilizadas de TI y telemetría de ciberseguridad. |
+| **Soporte Técnico en Terreno** | `IT_SERVICE` | 4 | Validación física de llegada de expositores mediante escaneo QR móvil en < 30s, entrega/recepción de equipamiento y registro de horas de soporte. |
 | **Encargado de Auditorio** | `ASSISTANT` | 3 | Revisión de solicitudes, aprobación/aplazamiento/rechazo y coordinación logística de aperturas. |
 | **Docente / Expositor** | `PROFESSOR` | 2 | Solicitud de espacios con requerimientos técnicos, confirmación/liberación rápida por correo y evaluación de satisfacción. |
 | **Visor General / Estudiante** | `STUDENT` | 1 | Consulta de solo lectura de la cartelera pública de eventos confirmados. |
@@ -77,18 +77,18 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
     1. *Confirmar Asistencia:* Marca `confirmedByUser = true`.
     2. *Liberar Espacio:* Cambia estado a `REJECTED` / `CANCELLED`, liberando el auditorio inmediatamente para otros usuarios.
 
-### 3.4 Módulo de Validación en Sitio (QR Dinámico Check-in / Check-out)
+### 3.4 Módulo de Validación en Sitio (QR Dinámico y Cómputo de Horas TI)
 * **RF-08: Emisión de Códigos QR Criptográficos Únicos**
   * *Actor:* Sistema.
   * *Descripción:* Generación de un token UUID v4 codificado en formato QR dinámico de alta densidad, adjunto a la vista web del solicitante y a su comprobante por correo.
 
 * **RF-09: Validación Presencial de Check-in en Menos de 30 Segundos**
   * *Actor:* `IT_SERVICE`, `IT_ADMIN`, `OWNER`.
-  * *Descripción:* Al llegar el expositor al auditorio, el técnico de TI escanea el código QR utilizando la cámara de su smartphone. El sistema valida el token en tiempo real, transiciona el estado a `CHECKED_IN` y registra la marca temporal exacta (`checkInTime`) y el ID del técnico validador (`checkedInBy`), eliminando las esperas pasivas de TI.
+  * *Descripción:* Al llegar el expositor al auditorio, el técnico de TI escanea el código QR utilizando la cámara de su smartphone. El sistema valida el token en tiempo real, transiciona el estado a `CHECKED_IN`, inicia el cómputo de horas de soporte y registra la marca temporal exacta (`checkInTime`) y el ID del técnico validador (`checkedInBy`), eliminando las esperas pasivas de TI.
 
-* **RF-10: Validación de Check-out y Control de Devolución de Activos**
+* **RF-10: Validación de Check-out y Cierre de Horas Utilizadas de TI**
   * *Actor:* `IT_SERVICE`, `IT_ADMIN`, `OWNER`.
-  * *Descripción:* Al finalizar el evento, el técnico vuelve a escanear el QR o pulsa el botón de cierre, confirmando la devolución íntegra de equipos. Se transiciona a `CHECKED_OUT` y se registran `checkoutTime` y `checkedOutBy`.
+  * *Descripción:* Al finalizar el evento, el técnico vuelve a escanear el QR o pulsa el botón de cierre, confirmando la devolución íntegra de equipos. Se transiciona a `CHECKED_OUT`, se registran `checkoutTime` y `checkedOutBy`, y el sistema computa las **horas hombre exactas de TI utilizadas** ($\Delta T = checkoutTime - checkInTime$).
 
 ### 3.5 Módulo de Encuestas Cuantitativas y Dashboard Operativo
 * **RF-11: Encuesta Cuantitativa de Satisfacción Post-Evento**
@@ -99,9 +99,9 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
     3. Trato y Rapidez del Soporte TI (`ratingSupport`).
     4. Observaciones cualitativas opcionales (`feedbackComment`).
 
-* **RF-12: Panel de Analítica Operativa y KPIs en Tiempo Real**
+* **RF-12: Panel de Analítica Operativa, Horas de TI Utilizadas y KPIs**
   * *Actor:* `IT_ADMIN`, `OWNER`.
-  * *Descripción:* Visualización gráfica de métricas consolidadas: porcentaje de ocupación semanal, índice de No-Shows, cálculo automático de Net Promoter Score (NPS), horas hombre ahorradas en soporte técnico y equipos con mayor tasa de fallas.
+  * *Descripción:* Visualización gráfica de métricas consolidadas: porcentaje de ocupación semanal, balance de horas hombre utilizadas de TI por carrera/evento, índice de No-Shows, cálculo automático de Net Promoter Score (NPS) y equipos con mayor tasa de fallas.
 
 ### 3.6 Módulo de Inventario y Difusión a Servicios de Apoyo
 * **RF-13: Catálogo y Control de Disponibilidad de Equipos**
@@ -120,7 +120,7 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
     * Accesos denegados por falta de privilegios (403 Forbidden).
     * Intentos de validación de códigos QR expirados, duplicados o falsificados.
     * Registro de uso del Código Maestro de bypass.
-  * *Visualización:* Gráficos de series de tiempo, semáforo de estado de amenaza (`VERDE - Normal`, `AMARILLO - Advertencia`, `ROJO - Bajo Ataque`) y distribución geográfica/IP.
+  * *Visualización:* Gráficos de series de tiempo, semáforo de estado de amenaza (`VERDE - Normal`, `AMARILLO - Advertencia`, `ROJO - Bajo Ataque`) y distribución de eventos.
 
 * **RF-16: Explorador y Bitácora de Telemetría de Auditoría (Audit Log Explorer)**
   * *Actor:* `OWNER`, `IT_ADMIN`.
@@ -158,7 +158,7 @@ graph TD
 ## 5. Matriz de Trazabilidad (Requerimientos vs Dolores Operacionales vs Seguridad)
 
 | Código | Requerimiento / Capacidad | Dolor Operacional / Riesgo de Seguridad Resuelto | Criticidad |
-| :---: | :--- | :--- | :--- |
+| :---: | :--- | :--- | :---: |
 | **RF-01** | Autenticación Segura Multi-Rol | Suplantación de identidad / Acceso no autorizado | **Alta** |
 | **RF-02** | Control RBAC de 6 Roles | Fuga de privilegios administrativos | **Alta** |
 | **RF-03** | Solicitud Modular con Validación Zod | Inyección de datos maliciosos en formularios | **Alta** |
@@ -168,13 +168,13 @@ graph TD
 | **RF-07** | Confirmación por Token Criptográfico | Cancelaciones tardías sin autenticación pesada | **Alta** |
 | **RF-08** | Emisión QR Dinámico UUID v4 | Falsificación de pases de acceso | **Alta** |
 | **RF-09** | **Validación Check-in QR < 30 seg** | **Cuello de botella de 1 hora de espera de TI** | **Crítica** |
-| **RF-10** | Validación Check-out con Trazabilidad | Extravío o daño no registrado de equipos | **Crítica** |
+| **RF-10** | **Validación Check-out y Horas TI** | **Descontrol de horas utilizadas de personal TI** | **Crítica** |
 | **RF-11** | Encuesta de Satisfacción Parametrizada | Opiniones subjetivas sin métricas cuantificables | **Media** |
-| **RF-12** | Dashboard Operativo y NPS | Falta de visibilidad directiva sobre uso y tiempos | **Alta** |
+| **RF-12** | **Dashboard de Horas TI y Ocupación** | **Ceguera directiva sobre uso real de recursos técnicos** | **Alta** |
 | **RF-13** | Control de Estado de Equipos | Asignación accidental de hardware dañado | **Alta** |
 | **RF-14** | **Difusión a Aseo, Guardia y TI** | **Desinformación en cuadrillas de servicios generales** | **Media** |
-| **RF-15** | **Monitoreo SOC de Ataques y Accesos No Deseados** | **Ceguera de ciberseguridad y falta de métricas a largo plazo** | **Crítica** |
-| **RF-16** | **Explorador de Bitácora de Telemetría (Audit Logs)** | **Dificultad para identificar y auditar la causa raíz de fallas** | **Alta** |
+| **RF-15** | **Monitoreo SOC de Ataques y Accesos** | **Ceguera de ciberseguridad y falta de métricas a largo plazo** | **Crítica** |
+| **RF-16** | **Explorador de Bitácora de Telemetría** | **Dificultad para identificar y auditar la causa raíz de fallas** | **Alta** |
 | **RS-01** | Cifrado bcrypt (Cost Factor 10) | Robo o filtración de base de datos de credenciales | **Crítica** |
 | **RS-02** | Cookies HttpOnly + Secure + SameSite | Ataques XSS y robo de sesiones de usuario | **Crítica** |
 | **RS-06** | Cabeceras HSTS + CSP + X-Frame-Options | Ataques de Clickjacking y degradación SSL | **Alta** |
