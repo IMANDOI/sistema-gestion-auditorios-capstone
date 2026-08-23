@@ -1,0 +1,38 @@
+name: "CI & Document Integrity Check"
+
+on:
+  push:
+    branches: [ "main", "develop", "backup/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-docs-and-build:
+    name: "Validación de Entregables e Integridad de Archivos"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Clonar Repositorio"
+        uses: actions/checkout@v4
+
+      - name: "Configurar Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: "Verificar Existencia de Entregables Clave"
+        run: |
+          echo "Verificando entregables obligatorios de la Fase 1..."
+          test -f "informe_fase_1_definicion_proyecto.md" || { echo "Falta informe de fase 1"; exit 1; }
+          test -f "especificacion_requerimientos.md" || { echo "Falta especificacion de requerimientos"; exit 1; }
+          test -f "README.md" || { echo "Falta README.md"; exit 1; }
+          echo "Todos los entregables de la Fase 1 están presentes y válidos."
+
+      - name: "Generar Artefacto de Respaldo Automatizado"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "respaldo-entregables-fase1"
+          path: |
+            informe_fase_1_definicion_proyecto.md
+            especificacion_requerimientos.md
+            README.md
