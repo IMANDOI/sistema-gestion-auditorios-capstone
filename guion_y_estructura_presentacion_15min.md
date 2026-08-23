@@ -38,11 +38,11 @@ gantt
 ### Diapositiva 1: Portada y Presentación del Postulante (Minuto 0:00 - 1:00)
 * **Contenido Visual:**
   * Título del Proyecto: *Sistema Autónomo de Gestión Operativa, Trazabilidad, Medición de Horas Utilizadas de TI y Centro de Operaciones (SOC) para Auditorios y Espacios Multiuso*.
-  * Postulante: Benjamín Mandujano.
+  * Postulante: Benjamín Abraham Navarrete Hernández.
   * Carrera: Ingeniería en Informática / Análisis Programador - Sede La Florida.
   * Naturaleza: Producto Mínimo Viable (MVP) de Arquitectura *White-Label*.
 * **Guion del Estudiante:**
-  > *"Estimada comisión evaluadora, muy buenos días/tardes. Mi nombre es Benjamín Mandujano y hoy presento la definición de mi proyecto de título Capstone: una plataforma web integral, autónoma y desacoplada para la gobernanza operativa, trazabilidad en terreno mediante códigos QR, control de horas hombre utilizadas de TI y un Centro de Operaciones de Ciberseguridad (SOC). El proyecto está concebido como un Producto Mínimo Viable de alta fidelidad, de marca blanca, adaptable a cualquier recinto universitario o corporativo."*
+  > *"Estimada comisión evaluadora, muy buenos días/tardes. Mi nombre es Benjamín Abraham Navarrete Hernández y hoy presento la definición de mi proyecto de título Capstone: una plataforma web integral, autónoma y desacoplada para la gobernanza operativa, trazabilidad en terreno mediante códigos QR, control de horas hombre utilizadas de TI y un Centro de Operaciones de Ciberseguridad (SOC). El proyecto está concebido como un Producto Mínimo Viable de alta fidelidad, de marca blanca, adaptable a cualquier recinto universitario o corporativo."*
 
 ---
 
