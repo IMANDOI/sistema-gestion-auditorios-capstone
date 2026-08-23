@@ -5,7 +5,8 @@
 ---
 
 **Datos del Estudiante y del Proyecto:**
-* **Nombre del Estudiante:** Benjamín Mandujano
+* **Nombre del Estudiante:** Benjamín Abraham Navarrete Hernández
+* **RUT:** 21.252.605-3
 * **Carrera:** Ingeniería en Informática / Análisis Programador
 * **Sede:** Sede La Florida
 * **Asignatura:** Proyecto Capstone / Portafolio de Título (PTY4614)
@@ -69,7 +70,8 @@ La solución se construye sobre Next.js 15, Prisma ORM y PostgreSQL serverless e
 
 | Campo | Detalle Institucional / Académico |
 | :--- | :--- |
-| **Estudiante Postulante** | Benjamín Mandujano |
+| **Estudiante Postulante** | Benjamín Abraham Navarrete Hernández |
+| **RUT** | 21.252.605-3 |
 | **Carrera** | Ingeniería en Informática |
 | **Asignatura** | PTY4614 - Capstone / Portafolio de Título |
 | **Sede** | Sede La Florida |
