@@ -1,4 +1,4 @@
-# ESPECIFICACIÓN DE REQUERIMIENTOS DE SOFTWARE (SRS)
+# ESPECIFICACIÓN DE REQUERIMIENTOS DE SOFTWARE (SRS) - MVP
 ## Estándar IEEE 830 / ISO/IEC/IEEE 29148
 ### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad y Analítica para Auditorios y Espacios Multiuso
 
@@ -6,11 +6,11 @@
 
 ## 1. Introducción y Propósito del Sistema
 
-### 1.1 Naturaleza del Producto
-El sistema es una plataforma web modular, autónoma y desacoplada (*White-Label*), concebida para digitalizar, gobernar y auditar la totalidad de los flujos operacionales en auditorios, aulas magnas y salas de conferencias de alta demanda. No depende de ninguna institución particular y está parametrizado para adaptarse a universidades, centros de formación técnica, centros de eventos y complejos corporativos.
+### 1.1 Naturaleza del Producto: Producto Mínimo Viable (MVP)
+El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebida para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda. Su propósito es validar empíricamente la resolución de cuellos de botella en un entorno de producción, manteniendo una arquitectura abierta para futuras extensiones corporativas.
 
 ### 1.2 Justificación Operativa y Problemática Raíz
-El diseño de los requerimientos de este software responde a la mitigación directa de cuatro dolores operacionales críticos:
+El diseño de los requerimientos de este MVP responde a la mitigación directa de cuatro dolores operacionales críticos:
 1. **Ineficiencia Crítica del Soporte Técnico TI:** En sistemas convencionales, los técnicos perdían hasta 1 hora en sitio esperando a expositores retrasados para entregar equipos. La solución implementa **Check-in/out por QR móvil** que valida el acceso y entrega de equipamiento en menos de 30 segundos.
 2. **Falta de Coordinación con Servicios de Apoyo:** Personal de aseo y guardia no recibía la información a tiempo para planificar limpieza y aperturas. La solución integra **difusión automática por áreas (`EmailSubscription`)**.
 3. **Cancelaciones Imprevistas y No-Shows:** Profesores solicitaban el auditorio a última hora o no se presentaban. La solución introduce **confirmación anticipada por token sin login** y el **algoritmo de penalización de prioridad (*PriorityScore*)**.
@@ -18,7 +18,7 @@ El diseño de los requerimientos de este software responde a la mitigación dire
 
 ---
 
-## 2. Matriz de Roles y Actores del Sistema (RBAC)
+## 2. Matriz de Roles y Actores del MVP (RBAC)
 
 | Rol | Identificador | Nivel | Responsabilidades y Alcance Operativo |
 | :--- | :---: | :---: | :--- |
@@ -31,7 +31,7 @@ El diseño de los requerimientos de este software responde a la mitigación dire
 
 ---
 
-## 3. Catálogo de Requerimientos Funcionales (RF)
+## 3. Catálogo de Requerimientos Funcionales del MVP (RF)
 
 ### 3.1 Módulo de Autenticación, Sesiones y Seguridad
 * **RF-01: Autenticación Multi-Rol y Sesiones Seguras**
@@ -109,7 +109,7 @@ El diseño de los requerimientos de este software responde a la mitigación dire
 
 * **RF-14: Difusión Automática a Unidades de Apoyo (Aseo, Guardia, TI)**
   * *Actor:* Sistema / `OWNER`.
-  * *Descripción:* Gestión de listas de suscripción (`EmailSubscription`) por departamentos (`ASEO`, `GUARDIA`, `TI`, `SECRETARIA`) que reciben cronogramas automatizados con requerimientos especiales (ej. necesidad de limpieza previa o cofee break) para coordinar oportunamente su trabajo.
+  * *Descripción:* Gestión de listas de suscripción (`EmailSubscription`) por departamentos (`ASEO`, `GUARDIA`, `TI`, `SECRETARIA`) que reciben cronogramas automatizados con requerimientos especiales (ej. necesidad de limpieza previa o coffee break) para coordinar oportunamente su trabajo.
 
 ---
 
@@ -140,31 +140,11 @@ graph TD
     MAINT --> RNF10[RNF-10: Arquitectura White-Label Parametrizable]
 ```
 
-### 4.1 Seguridad (Security)
-* **RNF-01:** Hasheo de credenciales con `bcrypt` y tránsito exclusivo bajo HTTPS con TLS 1.3.
-* **RNF-02:** Tokens JWT firmados criptográficamente y protegidos en cookies `HttpOnly` y `SameSite=Lax`. Validación estricta de payloads en servidor con Zod.
-
-### 4.2 Eficiencia de Desempeño (Performance Efficiency)
-* **RNF-03:** Tiempo de respuesta del servidor (TTFB) menor a 800 ms en consultas de calendario e inventario.
-* **RNF-04:** Renderizado del lado del servidor (SSR) en Next.js para optimizar métricas Core Web Vitals (FCP < 1.2s, LCP < 2.0s).
-
-### 4.3 Disponibilidad y Fiabilidad (Reliability)
-* **RNF-05:** Disponibilidad del servicio del 99.9% sobre infraestructura serverless en Vercel y Neon Cloud.
-* **RNF-06:** En caso de fallas de cámara en dispositivos móviles de los técnicos, el sistema permite la búsqueda y validación manual por código de token alfanumérico sin interrumpir la operación.
-
-### 4.4 Usabilidad y Accesibilidad (Usability)
-* **RNF-07:** Interfaz 100% responsiva (Mobile-First) diseñada para operar en pantallas desde 360px (móviles de técnicos en terreno) hasta estaciones de podio y monitores de recepción.
-* **RNF-08:** Tiempo de lectura, enfoque y decodificación de códigos QR inferior a 500 ms en condiciones normales de iluminación.
-
-### 4.5 Mantenibilidad y Portabilidad (Maintainability)
-* **RNF-09:** Código fuente en TypeScript con modo estricto (`strict: true`), tipado integral de base de datos generado por Prisma Client.
-* **RNF-10:** Arquitectura agnóstica de marca (*White-Label*), permitiendo cambiar colores institucionales, logotipos y nombres de recintos mediante variables de configuración sin alterar el código base.
-
 ---
 
 ## 5. Matriz de Trazabilidad (Requerimientos vs Dolores Operacionales vs Competencias)
 
-| Código RF | Dolor Operacional Resuelto | Competencia del Perfil de Egreso | Criticidad |
+| Código RF | Dolor Operacional Resuelto en el MVP | Competencia del Perfil de Egreso | Criticidad |
 | :---: | :--- | :--- | :---: |
 | **RF-01** | Acceso no autorizado / Suplantación | Competencia 4: Desarrollo e Integración de Software | **Alta** |
 | **RF-02** | Fuga de privilegios entre perfiles | Competencia 4: Desarrollo e Integración de Software | **Alta** |
