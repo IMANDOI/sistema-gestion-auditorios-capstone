@@ -1,21 +1,21 @@
 # ESPECIFICACIÓN DE REQUERIMIENTOS DE SOFTWARE (SRS) - MVP
 ## Estándar IEEE 830 / ISO/IEC/IEEE 29148 / OWASP Top 10
-### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad y Analítica para Auditorios y Espacios Multiuso
+### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Centro de Operaciones (SOC)
 
 ---
 
 ## 1. Introducción y Propósito del Sistema
 
 ### 1.1 Naturaleza del Producto: Producto Mínimo Viable (MVP)
-El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebida para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda bajo **estándares internacionales de ciberseguridad (OWASP Top 10 / ISO 27001)**.
+El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebido para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda bajo **estándares internacionales de ciberseguridad (OWASP Top 10 / ISO 27001)** y con un **Centro de Control de Operaciones y Seguridad (SOC)**.
 
 ### 1.2 Justificación Operativa y Problemática Raíz
-El diseño de los requerimientos de este MVP responde a la mitigación directa de cuatro dolores operacionales y de seguridad críticos:
+El diseño de los requerimientos de este MVP responde a la mitigación directa de cinco dolores operacionales y de seguridad críticos:
 1. **Ineficiencia Crítica del Soporte Técnico TI:** En sistemas convencionales, los técnicos perdían hasta 1 hora en sitio esperando a expositores retrasados para entregar equipos. La solución implementa **Check-in/out por QR móvil** que valida el acceso y entrega de equipamiento en menos de 30 segundos.
 2. **Falta de Coordinación con Servicios de Apoyo:** Personal de aseo y guardia no recibía la información a tiempo para planificar limpieza y aperturas. La solución integra **difusión automática por áreas (`EmailSubscription`)**.
 3. **Cancelaciones Imprevistas y No-Shows:** Profesores solicitaban el auditorio a última hora o no se presentaban. La solución introduce **confirmación anticipada por token sin login** y el **algoritmo de penalización de prioridad (*PriorityScore*)**.
 4. **Carencia de Métricas Cuantitativas:** Históricamente solo existían quejas subjetivas. La solución incorpora un **Dashboard de Analítica en tiempo real** y una **Encuesta de Calidad por Estrellas (1-5)** con cálculo de Net Promoter Score (NPS) y horas de ocupación efectiva.
-5. **Protección de Datos Sensibles e Identidades:** Mitigación de fugas de datos y accesos no autorizados mediante autenticación robusta, control RBAC y sanitización estricta.
+5. **Ceguera de Seguridad y Falta de Observabilidad (SOC):** Inexistencia de registros de accesos no autorizados, ataques de fuerza bruta o intentos de fraude. La solución incorpora un **Centro de Control de Ciberseguridad (SOC Dashboard)** con telemetría en tiempo real y bitácora de auditoría inmutable.
 
 ---
 
@@ -23,8 +23,8 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 
 | Rol | Identificador | Nivel | Responsabilidades y Alcance Operativo |
 | :--- | :---: | :---: | :--- |
-| **Super Administrador** | `OWNER` | 6 | Control total del sistema, auditoría de logs, bypass de contingencia (`MASTER-CODE`) y configuración de plataforma. |
-| **Administrador TI** | `IT_ADMIN` | 5 | Gestión técnica, catálogo de inventario audiovisual, asignación de técnicos y analítica de métricas. |
+| **Super Administrador** | `OWNER` | 6 | Control total del sistema, auditoría de logs, bypass de contingencia (`MASTER-CODE`), Centro de Control SOC y configuración de plataforma. |
+| **Administrador TI** | `IT_ADMIN` | 5 | Gestión técnica, catálogo de inventario audiovisual, asignación de técnicos, acceso a telemetría y analítica de métricas. |
 | **Soporte Técnico en Terreno** | `IT_SERVICE` | 4 | Validación física de llegada de expositores mediante escaneo QR móvil en < 30s, entrega y recepción de equipamiento. |
 | **Encargado de Auditorio** | `ASSISTANT` | 3 | Revisión de solicitudes, aprobación/aplazamiento/rechazo y coordinación logística de aperturas. |
 | **Docente / Expositor** | `PROFESSOR` | 2 | Solicitud de espacios con requerimientos técnicos, confirmación/liberación rápida por correo y evaluación de satisfacción. |
@@ -42,7 +42,7 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 
 * **RF-02: Control de Acceso Basado en Roles (RBAC)**
   * *Actor:* Middleware del Sistema.
-  * *Descripción:* Verificación en servidor de los privilegios del usuario autenticado antes de ejecutar cualquier Server Action o renderizar rutas protegidas. Retorna HTTP 403 Forbidden en caso de privilegios insuficientes.
+  * *Descripción:* Verificación en servidor de los privilegios del usuario autenticado antes de ejecutar cualquier Server Action o renderizar rutas protegidas. Retorna HTTP 403 Forbidden en caso de privilegios insuficientes y dispara un evento de alerta al SOC.
 
 ### 3.2 Módulo de Gestión de Solicitudes y Prevención de Conflictos
 * **RF-03: Solicitud de Auditorio con Requerimientos Técnicos**
@@ -90,7 +90,7 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
   * *Actor:* `IT_SERVICE`, `IT_ADMIN`, `OWNER`.
   * *Descripción:* Al finalizar el evento, el técnico vuelve a escanear el QR o pulsa el botón de cierre, confirmando la devolución íntegra de equipos. Se transiciona a `CHECKED_OUT` y se registran `checkoutTime` y `checkedOutBy`.
 
-### 3.5 Módulo de Encuestas Cuantitativas y Dashboard de Métricas
+### 3.5 Módulo de Encuestas Cuantitativas y Dashboard Operativo
 * **RF-11: Encuesta Cuantitativa de Satisfacción Post-Evento**
   * *Actor:* `PROFESSOR`.
   * *Descripción:* Tras el Check-out, el sistema despliega una encuesta de 3 parámetros evaluados de 1 a 5 estrellas:
@@ -112,6 +112,20 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
   * *Actor:* Sistema / `OWNER`.
   * *Descripción:* Gestión de listas de suscripción (`EmailSubscription`) por departamentos (`ASEO`, `GUARDIA`, `TI`, `SECRETARIA`) que reciben cronogramas automatizados con requerimientos especiales (ej. necesidad de limpieza previa o coffee break) para coordinar oportunamente su trabajo.
 
+### 3.7 Módulo de Centro de Control de Ciberseguridad (SOC Dashboard)
+* **RF-15: Monitoreo y Contador de Ataques y Accesos No Deseados**
+  * *Actor:* `IT_ADMIN`, `OWNER`.
+  * *Descripción:* Panel gráfico en tiempo real que contabiliza y grafica eventos de seguridad:
+    * Intentos fallidos de inicio de sesión y bloqueos por fuerza bruta.
+    * Accesos denegados por falta de privilegios (403 Forbidden).
+    * Intentos de validación de códigos QR expirados, duplicados o falsificados.
+    * Registro de uso del Código Maestro de bypass.
+  * *Visualización:* Gráficos de series de tiempo, semáforo de estado de amenaza (`VERDE - Normal`, `AMARILLO - Advertencia`, `ROJO - Bajo Ataque`) y distribución geográfica/IP.
+
+* **RF-16: Explorador y Bitácora de Telemetría de Auditoría (Audit Log Explorer)**
+  * *Actor:* `OWNER`, `IT_ADMIN`.
+  * *Descripción:* Tabla interactiva con filtros avanzados por nivel de severidad (`INFO`, `WARN`, `SECURITY_ALERT`, `CRITICAL`), fecha, usuario e IP de origen, permitiendo a los desarrolladores y administradores identificar la causa raíz de cualquier anomalía de forma instantánea.
+
 ---
 
 ## 4. Requerimientos Específicos de Ciberseguridad (RS) y RNF (ISO 25010 / OWASP)
@@ -125,7 +139,7 @@ graph TD
     SEC --> RS04[RS-04: Consultas Parametrizadas Anti-SQLi Prisma]
     SEC --> RS05[RS-05: Tokens UUID v4 de Alta Entropía]
     SEC --> RS06[RS-06: Cabeceras HTTP Defensivas HSTS/CSP]
-    SEC --> RS07[RS-07: Bitácora Inmutable de Auditoría]
+    SEC --> RS07[RS-07: Bitácora Inmutable de Auditoría en BD]
     SEC --> RS08[RS-08: Rate Limiting contra Fuerza Bruta]
 ```
 
@@ -135,12 +149,8 @@ graph TD
 * **RS-03 (Sanitización y Validación Server-Side):** Todo payload enviado al servidor mediante API o Server Actions debe ser validado con esquemas estrictos de **Zod**, descartando campos no permitidos para mitigar ataques de inyección y Parameter Tampering.
 * **RS-04 (Protección contra Inyección SQL):** Se prohíbe la concatenación directa de comandos SQL; el 100% de las mutaciones y consultas a la base de datos se ejecutarán a través del cliente parametrizado de **Prisma ORM**.
 * **RS-05 (Entropía en Códigos QR y Tokens de Email):** Los códigos QR dinámicos y los enlaces de confirmación utilizarán tokens UUID v4 criptográficamente seguros generados con el generador de números pseudoaleatorios del sistema operativo (CSPRNG).
-* **RS-06 (Cabeceras de Seguridad HTTP):** El servidor debe emitir cabeceras de respuesta HTTP defensivas:
-  * `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
-  * `X-Frame-Options: DENY` (mitigación de Clickjacking)
-  * `X-Content-Type-Options: nosniff` (previene ataques MIME-sniffing)
-  * `Referrer-Policy: strict-origin-when-cross-origin`
-* **RS-07 (Trazabilidad y Bitácora de Auditoría):** Todas las acciones críticas (aprobación, cancelación, Check-in presencial, Check-out y actualización de roles) registrarán el ID del operador, la marca temporal exacta y el estado previo/posterior.
+* **RS-06 (Cabeceras de Seguridad HTTP):** El servidor debe emitir cabeceras de respuesta HTTP defensivas (`HSTS`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`).
+* **RS-07 (Trazabilidad y Bitácora de Auditoría):** Todas las acciones críticas registrarán un evento en la tabla `SecurityAuditLog` con IP, User-Agent, severidad y marca temporal inmutable.
 * **RS-08 (Mitigación de Ataques de Fuerza Bruta):** Los endpoints de inicio de sesión y validación de tokens deben implementar mecanismos de limitación de tasa de solicitudes (*Rate Limiting*).
 
 ---
@@ -148,7 +158,7 @@ graph TD
 ## 5. Matriz de Trazabilidad (Requerimientos vs Dolores Operacionales vs Seguridad)
 
 | Código | Requerimiento / Capacidad | Dolor Operacional / Riesgo de Seguridad Resuelto | Criticidad |
-| :---: | :--- | :--- | :---: |
+| :---: | :--- | :--- | :--- |
 | **RF-01** | Autenticación Segura Multi-Rol | Suplantación de identidad / Acceso no autorizado | **Alta** |
 | **RF-02** | Control RBAC de 6 Roles | Fuga de privilegios administrativos | **Alta** |
 | **RF-03** | Solicitud Modular con Validación Zod | Inyección de datos maliciosos en formularios | **Alta** |
@@ -163,6 +173,8 @@ graph TD
 | **RF-12** | Dashboard Operativo y NPS | Falta de visibilidad directiva sobre uso y tiempos | **Alta** |
 | **RF-13** | Control de Estado de Equipos | Asignación accidental de hardware dañado | **Alta** |
 | **RF-14** | **Difusión a Aseo, Guardia y TI** | **Desinformación en cuadrillas de servicios generales** | **Media** |
+| **RF-15** | **Monitoreo SOC de Ataques y Accesos No Deseados** | **Ceguera de ciberseguridad y falta de métricas a largo plazo** | **Crítica** |
+| **RF-16** | **Explorador de Bitácora de Telemetría (Audit Logs)** | **Dificultad para identificar y auditar la causa raíz de fallas** | **Alta** |
 | **RS-01** | Cifrado bcrypt (Cost Factor 10) | Robo o filtración de base de datos de credenciales | **Crítica** |
 | **RS-02** | Cookies HttpOnly + Secure + SameSite | Ataques XSS y robo de sesiones de usuario | **Crítica** |
 | **RS-06** | Cabeceras HSTS + CSP + X-Frame-Options | Ataques de Clickjacking y degradación SSL | **Alta** |
