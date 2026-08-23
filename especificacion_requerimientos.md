@@ -1,5 +1,5 @@
 # ESPECIFICACIÓN DE REQUERIMIENTOS DE SOFTWARE (SRS) - MVP
-## Estándar IEEE 830 / ISO/IEC/IEEE 29148
+## Estándar IEEE 830 / ISO/IEC/IEEE 29148 / OWASP Top 10
 ### Proyecto: Sistema Autónomo de Gestión Operativa, Trazabilidad y Analítica para Auditorios y Espacios Multiuso
 
 ---
@@ -7,14 +7,15 @@
 ## 1. Introducción y Propósito del Sistema
 
 ### 1.1 Naturaleza del Producto: Producto Mínimo Viable (MVP)
-El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebida para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda. Su propósito es validar empíricamente la resolución de cuellos de botella en un entorno de producción, manteniendo una arquitectura abierta para futuras extensiones corporativas.
+El presente software constituye un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado (*White-Label*), concebida para digitalizar, gobernar y auditar la totalidad de los flujos operacionales críticos en auditorios, aulas magnas y salas de conferencias de alta demanda bajo **estándares internacionales de ciberseguridad (OWASP Top 10 / ISO 27001)**.
 
 ### 1.2 Justificación Operativa y Problemática Raíz
-El diseño de los requerimientos de este MVP responde a la mitigación directa de cuatro dolores operacionales críticos:
+El diseño de los requerimientos de este MVP responde a la mitigación directa de cuatro dolores operacionales y de seguridad críticos:
 1. **Ineficiencia Crítica del Soporte Técnico TI:** En sistemas convencionales, los técnicos perdían hasta 1 hora en sitio esperando a expositores retrasados para entregar equipos. La solución implementa **Check-in/out por QR móvil** que valida el acceso y entrega de equipamiento en menos de 30 segundos.
 2. **Falta de Coordinación con Servicios de Apoyo:** Personal de aseo y guardia no recibía la información a tiempo para planificar limpieza y aperturas. La solución integra **difusión automática por áreas (`EmailSubscription`)**.
 3. **Cancelaciones Imprevistas y No-Shows:** Profesores solicitaban el auditorio a última hora o no se presentaban. La solución introduce **confirmación anticipada por token sin login** y el **algoritmo de penalización de prioridad (*PriorityScore*)**.
 4. **Carencia de Métricas Cuantitativas:** Históricamente solo existían quejas subjetivas. La solución incorpora un **Dashboard de Analítica en tiempo real** y una **Encuesta de Calidad por Estrellas (1-5)** con cálculo de Net Promoter Score (NPS) y horas de ocupación efectiva.
+5. **Protección de Datos Sensibles e Identidades:** Mitigación de fugas de datos y accesos no autorizados mediante autenticación robusta, control RBAC y sanitización estricta.
 
 ---
 
@@ -33,10 +34,10 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 
 ## 3. Catálogo de Requerimientos Funcionales del MVP (RF)
 
-### 3.1 Módulo de Autenticación, Sesiones y Seguridad
+### 3.1 Módulo de Autenticación, Sesiones y Ciberseguridad
 * **RF-01: Autenticación Multi-Rol y Sesiones Seguras**
   * *Actor:* Todos los roles.
-  * *Descripción:* Inicio de sesión con usuario/correo y contraseña cifrada mediante `bcrypt` (cost factor >= 10). Emisión de tokens de sesión JWT cifrados (JWE) almacenados en cookies `HttpOnly` y `SameSite=Lax`.
+  * *Descripción:* Inicio de sesión con usuario/correo y contraseña cifrada mediante `bcrypt` (cost factor >= 10). Emisión de tokens de sesión JWT cifrados (JWE) almacenados en cookies `HttpOnly`, `Secure` y `SameSite=Lax`.
   * *Regla de Negocio:* Si un usuario posee rol `OWNER` o utiliza el Código Maestro de contingencia, se otorga acceso de superusuario con registro en bitácora de auditoría.
 
 * **RF-02: Control de Acceso Basado en Roles (RBAC)**
@@ -113,50 +114,55 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 
 ---
 
-## 4. Requerimientos No Funcionales (RNF) bajo Estándar ISO/IEC 25010
+## 4. Requerimientos Específicos de Ciberseguridad (RS) y RNF (ISO 25010 / OWASP)
 
 ```mermaid
 graph TD
-    ISO[ISO/IEC 25010 Calidad de Software]
-    ISO --> SEC[Seguridad]
-    ISO --> PERF[Eficiencia de Desempeño]
-    ISO --> AVAIL[Disponibilidad y Fiabilidad]
-    ISO --> USAB[Usabilidad Mobile-First]
-    ISO --> MAINT[Mantenibilidad y Escalabilidad]
-
-    SEC --> RNF01[RNF-01: Cifrado bcrypt y HTTPS TLS 1.3]
-    SEC --> RNF02[RNF-02: Cookies HttpOnly y Zod Validation]
-    
-    PERF --> RNF03[RNF-03: Tiempo de Respuesta TTFB < 800ms]
-    PERF --> RNF04[RNF-04: Next.js Server Components Optimizado]
-    
-    AVAIL --> RNF05[RNF-05: SLA 99.9% Neon/Vercel Serverless]
-    AVAIL --> RNF06[RNF-06: Respaldo de Búsqueda Manual por Token]
-    
-    USAB --> RNF07[RNF-07: UI Responsiva 360px a 4K]
-    USAB --> RNF08[RNF-08: Lectura y Decodificación QR < 500ms]
-    
-    MAINT --> RNF09[RNF-09: TypeScript Estricto y Prisma ORM]
-    MAINT --> RNF10[RNF-10: Arquitectura White-Label Parametrizable]
+    SEC[Ciberseguridad y Calidad ISO 25010 / OWASP]
+    SEC --> RS01[RS-01: Hashing de Claves bcrypt Salt 10]
+    SEC --> RS02[RS-02: JWT Cifrado en Cookies HttpOnly/Secure]
+    SEC --> RS03[RS-03: Sanitización y Tipado Estricto Zod]
+    SEC --> RS04[RS-04: Consultas Parametrizadas Anti-SQLi Prisma]
+    SEC --> RS05[RS-05: Tokens UUID v4 de Alta Entropía]
+    SEC --> RS06[RS-06: Cabeceras HTTP Defensivas HSTS/CSP]
+    SEC --> RS07[RS-07: Bitácora Inmutable de Auditoría]
+    SEC --> RS08[RS-08: Rate Limiting contra Fuerza Bruta]
 ```
+
+### 4.1 Ciberseguridad y Protección de Datos Sensibles (Security)
+* **RS-01 (Hashing de Contraseñas):** Las contraseñas de los usuarios nunca se almacenarán en texto plano. Se procesarán mediante el algoritmo `bcrypt` con un factor de costo computacional mínimo de 10 iteraciones.
+* **RS-02 (Gestión de Sesión y Cookies Seguras):** Los tokens JWT se firmarán y cifrarán del lado del servidor. Las cookies de sesión deben incluir los flags obligatorios `HttpOnly` (previene acceso desde JavaScript), `Secure` (exclusivo HTTPS) y `SameSite=Lax` (mitiga CSRF).
+* **RS-03 (Sanitización y Validación Server-Side):** Todo payload enviado al servidor mediante API o Server Actions debe ser validado con esquemas estrictos de **Zod**, descartando campos no permitidos para mitigar ataques de inyección y Parameter Tampering.
+* **RS-04 (Protección contra Inyección SQL):** Se prohíbe la concatenación directa de comandos SQL; el 100% de las mutaciones y consultas a la base de datos se ejecutarán a través del cliente parametrizado de **Prisma ORM**.
+* **RS-05 (Entropía en Códigos QR y Tokens de Email):** Los códigos QR dinámicos y los enlaces de confirmación utilizarán tokens UUID v4 criptográficamente seguros generados con el generador de números pseudoaleatorios del sistema operativo (CSPRNG).
+* **RS-06 (Cabeceras de Seguridad HTTP):** El servidor debe emitir cabeceras de respuesta HTTP defensivas:
+  * `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
+  * `X-Frame-Options: DENY` (mitigación de Clickjacking)
+  * `X-Content-Type-Options: nosniff` (previene ataques MIME-sniffing)
+  * `Referrer-Policy: strict-origin-when-cross-origin`
+* **RS-07 (Trazabilidad y Bitácora de Auditoría):** Todas las acciones críticas (aprobación, cancelación, Check-in presencial, Check-out y actualización de roles) registrarán el ID del operador, la marca temporal exacta y el estado previo/posterior.
+* **RS-08 (Mitigación de Ataques de Fuerza Bruta):** Los endpoints de inicio de sesión y validación de tokens deben implementar mecanismos de limitación de tasa de solicitudes (*Rate Limiting*).
 
 ---
 
-## 5. Matriz de Trazabilidad (Requerimientos vs Dolores Operacionales vs Competencias)
+## 5. Matriz de Trazabilidad (Requerimientos vs Dolores Operacionales vs Seguridad)
 
-| Código RF | Dolor Operacional Resuelto en el MVP | Competencia del Perfil de Egreso | Criticidad |
+| Código | Requerimiento / Capacidad | Dolor Operacional / Riesgo de Seguridad Resuelto | Criticidad |
 | :---: | :--- | :--- | :---: |
-| **RF-01** | Acceso no autorizado / Suplantación | Competencia 4: Desarrollo e Integración de Software | **Alta** |
-| **RF-02** | Fuga de privilegios entre perfiles | Competencia 4: Desarrollo e Integración de Software | **Alta** |
-| **RF-03** | Solicitudes desordenadas de equipamiento | Competencia 4: Desarrollo e Integración de Software | **Alta** |
-| **RF-04** | Solapamiento y cruce de reservas | Competencia 3: Modelos de Datos Escalables | **Crítica** |
-| **RF-05** | No-Shows y mala praxis docente | Competencia 2: Gestión y Toma de Decisiones | **Media** |
-| **RF-06** | Falta de control administrativo | Competencia 2: Gestión de Proyectos Informáticos | **Alta** |
-| **RF-07** | Cancelaciones imprevistas de último minuto | Competencia 4: Desarrollo e Integración de Software | **Alta** |
-| **RF-08** | Inseguridad en tickets de acceso | Competencia 4: Desarrollo e Integración de Software | **Alta** |
-| **RF-09** | **Pérdida de 1h de espera de técnicos TI** | Competencia 1: Pruebas y Certificación de Procesos | **Crítica** |
-| **RF-10** | Extravío de equipamiento audiovisual | Competencia 1: Pruebas y Certificación de Procesos | **Crítica** |
-| **RF-11** | Opiniones subjetivas sin datos duros | Competencia 1: Pruebas y Calidad de Software | **Media** |
-| **RF-12** | Ceguera directiva sobre uso y KPIs | Competencia 2: Gestión y Toma de Decisiones | **Alta** |
-| **RF-13** | Asignación de equipos en mal estado | Competencia 3: Modelos de Datos Escalables | **Alta** |
-| **RF-14** | **Desinformación en Aseo, Guardia y TI** | Competencia 4: Desarrollo e Integración de Software | **Media** |
+| **RF-01** | Autenticación Segura Multi-Rol | Suplantación de identidad / Acceso no autorizado | **Alta** |
+| **RF-02** | Control RBAC de 6 Roles | Fuga de privilegios administrativos | **Alta** |
+| **RF-03** | Solicitud Modular con Validación Zod | Inyección de datos maliciosos en formularios | **Alta** |
+| **RF-04** | Algoritmo Anti-Colisiones Atómico | Solapamiento de reservas en base de datos | **Crítica** |
+| **RF-05** | Penalización PriorityScore | Mala praxis docente y reservas fantasmas | **Media** |
+| **RF-06** | Dictamen Administrativo Auditado | Falta de control y trazabilidad en decisiones | **Alta** |
+| **RF-07** | Confirmación por Token Criptográfico | Cancelaciones tardías sin autenticación pesada | **Alta** |
+| **RF-08** | Emisión QR Dinámico UUID v4 | Falsificación de pases de acceso | **Alta** |
+| **RF-09** | **Validación Check-in QR < 30 seg** | **Cuello de botella de 1 hora de espera de TI** | **Crítica** |
+| **RF-10** | Validación Check-out con Trazabilidad | Extravío o daño no registrado de equipos | **Crítica** |
+| **RF-11** | Encuesta de Satisfacción Parametrizada | Opiniones subjetivas sin métricas cuantificables | **Media** |
+| **RF-12** | Dashboard Operativo y NPS | Falta de visibilidad directiva sobre uso y tiempos | **Alta** |
+| **RF-13** | Control de Estado de Equipos | Asignación accidental de hardware dañado | **Alta** |
+| **RF-14** | **Difusión a Aseo, Guardia y TI** | **Desinformación en cuadrillas de servicios generales** | **Media** |
+| **RS-01** | Cifrado bcrypt (Cost Factor 10) | Robo o filtración de base de datos de credenciales | **Crítica** |
+| **RS-02** | Cookies HttpOnly + Secure + SameSite | Ataques XSS y robo de sesiones de usuario | **Crítica** |
+| **RS-06** | Cabeceras HSTS + CSP + X-Frame-Options | Ataques de Clickjacking y degradación SSL | **Alta** |
