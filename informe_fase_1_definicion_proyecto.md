@@ -1,6 +1,6 @@
 # INFORME DE INGENIERÍA - FASE 1: DEFINICIÓN DEL PROYECTO APT
 ## Asignatura: Capstone (PTY4614) - Portafolio de Título
-### Sistema Autónomo de Gestión Operativa, Trazabilidad en Tiempo Real y Analítica para Auditorios y Espacios Multiuso
+### Sistema Autónomo de Gestión Operativa, Trazabilidad en Tiempo Real, Ciberseguridad y Centro de Operaciones (SOC) para Auditorios y Espacios Multiuso
 
 ---
 
@@ -12,21 +12,22 @@
 * **Docente Guía / Comisión Evaluadora:** Comisión de Evaluación de Proyectos de Título
 * **Fecha de Entrega:** Semestre Académico 2026 - Fase 1 (Semana 4)
 * **Naturaleza del Entregable:** Producto Mínimo Viable (MVP) Operativo de Alta Fidelidad
-* **Marco de Ciberseguridad:** Estándares OWASP Top 10, ISO/IEC 27001 y Cifrado de Datos Sensibles
+* **Marco de Ciberseguridad & Telemetría:** OWASP Top 10, ISO/IEC 27001 y Centro de Operaciones de Seguridad (SOC)
 * **Repositorio Público de Evidencias:** [https://github.com/IMANDOI/sistema-gestion-auditorios-capstone](https://github.com/IMANDOI/sistema-gestion-auditorios-capstone)
 
 ---
 
 ## Resumen Ejecutivo
 
-El presente proyecto de titulación nace a partir de una problemática operacional empírica y crítica experimentada en la gestión de espacios comunes y auditorios de alta demanda: la absoluta descoordinación logística, el uso ineficiente del recurso humano técnico, la inexistencia de métricas cuantitativas de servicio y la exposición de datos operativos no auditados. En la operación convencional, los procesos basados en planillas informales, correos y mensajería provocan constantes solicitudes de último minuto, cancelaciones imprevistas sin aviso ("No-Shows") y una grave brecha de comunicación que deja desinformados al personal de aseo, seguridad y administración. Especialmente crítico es el impacto sobre las unidades de Soporte TI, donde los técnicos solían perder hasta una hora completa en sitio esperando la llegada de expositores para validar accesos y entregar equipos, paralizando la atención de otros incidentes en el recinto.
+El presente proyecto de titulación nace a partir de una problemática operacional empírica y crítica experimentada en la gestión de espacios comunes y auditorios de alta demanda: la absoluta descoordinación logística, el uso ineficiente del recurso humano técnico, la inexistencia de métricas cuantitativas de servicio y la falta de visibilidad sobre eventos de ciberseguridad y accesos indebidos. En la operación convencional, los procesos basados en planillas informales, correos y mensajería provocan constantes solicitudes de último minuto, cancelaciones imprevistas sin aviso ("No-Shows"), una grave brecha de comunicación que deja desinformados al personal de aseo, seguridad y administración, y una inmovilización de hasta una hora del personal de Soporte TI en terreno esperando expositores.
 
-Para erradicar esta raíz del problema, se diseña e implementa un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado de cualquier institución particular (arquitectura *white-label* escalable). Este MVP no pretende ser la versión final definitiva con todas las integraciones corporativas futuras, sino una versión funcional estratégica enfocada en validar y resolver los dolores operacionales críticos inmediatos bajo un estricto **marco de ciberseguridad y protección de datos sensibles (OWASP Top 10 / ISO 27001)**:
+Para erradicar esta raíz del problema, se diseña e implementa un **Producto Mínimo Viable (MVP)** funcional, modular y desacoplado de cualquier institución particular (arquitectura *white-label* escalable). El sistema integra un innovador **Centro de Control y Operaciones de Seguridad (SOC / Admin Operations Center)** que combina la gobernanza logística con la observabilidad y telemetría de ciberseguridad:
 1. **Subsistema Criptográfico de Check-in/Check-out mediante Códigos QR Dinámicos:** Reduce el tiempo de recepción y entrega de 60 minutos a menos de 30 segundos, registrando marcas temporales exactas y trazabilidad de activos audiovisuales.
 2. **Motor Automatizado de Difusión Multicanal por Áreas:** Distribuye listas operativas automáticas a los equipos de aseo, guardias, TI y administración.
 3. **Mecanismos de Confirmación Anticipada y Penalización de Prioridad:** Desincentiva reservas fantasmas y optimiza el uso del espacio mediante un algoritmo de prioridad docente (*PriorityScore*).
 4. **Dashboard de Analítica Cuantitativa y Panel de Satisfacción Inmediata:** Transforma comentarios cualitativos en datos duros de rendimiento, tasas de ocupación, NPS y eficiencia operativa.
-5. **Capa de Ciberseguridad y Protección de Identidades:** Hashing adaptativo con bcrypt (factor >= 10), tokens de sesión JWT cifrados (JWE) en cookies `HttpOnly`/`Secure`/`SameSite=Lax`, sanitización estricta de esquemas con Zod, cabeceras HTTP defensivas (CSP, HSTS, X-Frame-Options) y bitácora de auditoría para trazabilidad institucional.
+5. **Centro de Control de Ciberseguridad y Telemetría en Tiempo Real (SOC Dashboard):** Panel interactivo avanzado que monitorea intentos de acceso no deseados, ataques de fuerza bruta mitigados, intentos de reutilización de tokens QR caducados, denegaciones RBAC y métricas de latencia de base de datos.
+6. **Capa Defensiva de Ciberseguridad:** Hashing adaptativo con bcrypt (factor >= 10), tokens de sesión JWT cifrados (JWE) en cookies `HttpOnly`/`Secure`/`SameSite=Lax`, esquemas de validación estricta Zod y cabeceras HTTP defensivas (CSP, HSTS, X-Frame-Options).
 
 La solución se construye sobre Next.js 15, Prisma ORM y PostgreSQL serverless en Neon Cloud, bajo una metodología ágil Scrum que simula una célula de ingeniería de software de 8 roles, garantizando el cumplimiento de los estándares ISO/IEC 25010 y las 4 competencias clave del perfil de egreso.
 
@@ -47,11 +48,12 @@ La solución se construye sobre Next.js 15, Prisma ORM y PostgreSQL serverless e
    * 2.3 [Matriz de Evidencias e Hitos Evaluativos](#23-matriz-de-evidencias-e-hitos-evaluativos)
    * 2.4 [Plan de Trabajo Detallado](#24-plan-de-trabajo-detallado)
    * 2.5 [Carta Gantt del Ciclo Académico (18 Semanas)](#25-carta-gantt-del-ciclo-académico-18-semanas)
-3. [PARTE III: Arquitectura de Software, Ciberseguridad y Modelado Conceptual](#parte-iii-arquitectura-de-software-ciberseguridad-y-modelado-conceptual)
+3. [PARTE III: Arquitectura de Software, Ciberseguridad, Telemetría y Modelado](#parte-iii-arquitectura-de-software-ciberseguridad-telemetría-y-modelado)
    * 3.1 [Marco de Ciberseguridad y Protección de Datos Sensibles (OWASP / ISO 27001)](#31-marco-de-ciberseguridad-y-protección-de-datos-sensibles-owasp--iso-27001)
-   * 3.2 [Diagrama de Casos de Uso del Negocio](#32-diagrama-de-casos-de-uso-del-negocio)
-   * 3.3 [Arquitectura de Contenedores y Flujo de Datos (C4 Model)](#33-arquitectura-de-contenedores-y-flujo-de-datos-c4-model)
-   * 3.4 [Modelo Entidad-Relación y Estructura de Datos](#34-modelo-entidad-relación-y-estructura-de-datos)
+   * 3.2 [Centro de Control, Telemetría y Monitoreo de Amenazas (SOC Dashboard)](#32-centro-de-control-telemetría-y-monitoreo-de-amenazas-soc-dashboard)
+   * 3.3 [Diagrama de Casos de Uso del Negocio y Seguridad](#33-diagrama-de-casos-de-uso-del-negocio-y-seguridad)
+   * 3.4 [Arquitectura de Contenedores y Flujo de Datos (C4 Model)](#34-arquitectura-de-contenedores-y-flujo-de-datos-c4-model)
+   * 3.5 [Modelo Entidad-Relación y Estructura de Datos (con Logs de Ciberseguridad)](#35-modelo-entidad-relación-y-estructura-de-datos-con-logs-de-ciberseguridad)
 4. [PARTE IV: Roadmap Evolutivo y Conclusiones Académicas](#parte-iv-roadmap-evolutivo-y-conclusiones-académicas)
    * 4.1 [Límites del MVP vs Roadmap Post-Proyecto](#41-límites-del-mvp-vs-roadmap-post-proyecto)
    * 4.2 [Conclusiones Generales del Informe](#42-conclusiones-generales-del-informe)
@@ -71,15 +73,15 @@ La solución se construye sobre Next.js 15, Prisma ORM y PostgreSQL serverless e
 | **Carrera** | Ingeniería en Informática |
 | **Asignatura** | PTY4614 - Capstone / Portafolio de Título |
 | **Sede** | Sede La Florida |
-| **Tipo de Solución** | Producto Mínimo Viable (MVP) de Arquitectura *White-Label* |
+| **Tipo de Solución** | Producto Mínimo Viable (MVP) con SOC de Ciberseguridad (*White-Label*) |
 | **Repositorio Oficial de Avances** | `https://github.com/IMANDOI/sistema-gestion-auditorios-capstone` |
 
 > [!NOTE]
 > **Aclaración de Alcance y Definición como MVP:**
-> El sistema desarrollado en el marco de esta asignatura corresponde formalmente a un **Producto Mínimo Viable (MVP)**. Su objetivo es implementar el conjunto nuclear de funcionalidades que permitan validar y resolver en un entorno operacional real los cuatro problemas críticos detectados (cuello de botella de TI, desinformación de aseo/guardia, cancelaciones tardías y falta de métricas duras). No constituye un producto cerrado o inmutable, sino una base sólida y escalable para futuras versiones comerciales y corporativas.
+> El sistema desarrollado en el marco de esta asignatura corresponde formalmente a un **Producto Mínimo Viable (MVP)**. Su objetivo es implementar el conjunto nuclear de funcionalidades operacionales y de ciberseguridad que permitan resolver cuellos de botella de TI, descoordinación de cuadrillas de apoyo y falta de trazabilidad en seguridad. No constituye un producto cerrado, sino una base sólida para futuras versiones empresariales.
 
 ## 1.2 Definición y Alcance del Producto Mínimo Viable (MVP)
-El MVP contempla la digitalización y automatización del flujo esencial del auditorio:
+El MVP contempla la digitalización y automatización del flujo esencial del auditorio junto a un centro de observabilidad de seguridad:
 
 ```mermaid
 graph LR
@@ -92,7 +94,7 @@ graph LR
     E -->|7. Escaneo QR Check-in < 30 seg| B
     E -->|8. Escaneo QR Check-out & Cierre| B
     B -->|9. Encuesta Cuantitativa Inmediata| A
-    B -->|10. Dashboards & Métricas en Tiempo Real| F[Dirección / Jefatura de Operaciones]
+    B -->|10. Dashboards Operativos & SOC en Tiempo Real| F[Dirección / Administradores de Seguridad]
 ```
 
 ## 1.3 Áreas de Desempeño y Competencias del Perfil de Egreso
@@ -107,22 +109,20 @@ flowchart TD
         C3["Competencia 3: Construir modelos de datos escalables, normalizados y de alto rendimiento"]
         C4["Competencia 4: Desarrollar e integrar soluciones de software sistematizadas y mantenibles"]
     end
-    C1 --> P["MVP: Plataforma de Gestión de Auditorios"]
+    C1 --> P["MVP: Plataforma de Auditorios & SOC"]
     C2 --> P
     C3 --> P
     C4 --> P
 ```
 
-1. **Competencia 1 - Aseguramiento de Calidad y Pruebas (QA):** Pruebas unitarias de algoritmos de colisión de horarios, pruebas de integración de Server Actions y pruebas de estrés para lectura concurrente de códigos QR en terreno.
-2. **Competencia 2 - Gestión de Proyectos Informáticos:** Planificación bajo Scrum con estimación en Story Points, gestión de riesgos de concurrencia y control de Carta Gantt en 18 semanas.
-3. **Competencia 3 - Construcción de Modelos de Datos Escalables:** Esquema relacional en 3FN en PostgreSQL (Neon), índices B-Tree en campos críticos de búsqueda temporal y restricciones de integridad referencial modeladas en Prisma ORM.
-4. **Competencia 4 - Desarrollo e Integración de Software:** Construcción Fullstack moderna en Next.js 15 (React 19 Server Components), autenticación NextAuth con RBAC de 6 niveles, integración de correos automáticos por áreas y generación criptográfica de tokens QR.
+1. **Competencia 1 - Aseguramiento de Calidad y Pruebas (QA):** Pruebas unitarias de algoritmos de colisión, pruebas de penetración (DAST) simuladas contra inyecciones y validación de lectura de códigos QR.
+2. **Competencia 2 - Gestión de Proyectos Informáticos:** Planificación bajo Scrum con estimación en Story Points, gestión de riesgos de seguridad y control de Carta Gantt en 18 semanas.
+3. **Competencia 3 - Construcción de Modelos de Datos Escalables:** Esquema relacional en 3FN en PostgreSQL (Neon), tablas de telemetría y auditoría de seguridad (`SecurityAuditLog`) con índices B-Tree para consultas analíticas de alto rendimiento.
+4. **Competencia 4 - Desarrollo e Integración de Software:** Construcción Fullstack moderna en Next.js 15, autenticación NextAuth con RBAC de 6 niveles, panel SOC interactivo con gráficos en tiempo real y generación criptográfica de tokens QR.
 
 ---
 
 ## 1.4 Fundamentación: Análisis Exhaustivo de la Problemática Raíz
-
-La génesis de este proyecto radica en la observación directa y vivencial de las ineficiencias críticas que sufren las organizaciones al gestionar espacios de alta demanda mediante métodos convencionales:
 
 ```mermaid
 graph TD
@@ -131,60 +131,49 @@ graph TD
     P --> P1["1. Cuello de Botella del Personal TI<br>- Técnicos esperan hasta 1 hora en sitio<br>- Inmovilización de recurso humano crítico<br>- Retraso en tickets de soporte general"]
     P --> P2["2. Desinformación en Servicios de Apoyo<br>- Aseo no sabe cuándo limpiar antes/después<br>- Guardias no tienen registro de accesos<br>- Información fragmentada"]
     P --> P3["3. Mala Praxis de Solicitantes<br>- Solicitudes y cancelaciones a último minuto<br>- 'No-Shows' (reservas tomadas sin uso)<br>- Bloqueo injustificado del auditorio"]
-    P --> P4["4. Inexistencia de Métricas Reales<br>- Solo existen quejas o comentarios subjetivos<br>- Cero datos cuantitativos sobre ocupación<br>- Cero métricas de calidad de equipamiento"]
+    P --> P4["4. Ceguera Operacional y de Seguridad<br>- Inexistencia de métricas cuantitativas<br>- Cero visibilidad de accesos no deseados<br>- Falta de trazabilidad en intentos de intrusión"]
 
-    P1 --> S["SOLUCIÓN MVP: SISTEMA AUTÓNOMO"]
+    P1 --> S["SOLUCIÓN MVP + CENTRO DE OPERACIONES SOC"]
     P2 --> S
     P3 --> S
     P4 --> S
 ```
 
-### 1. El Cuello de Botella del Personal de Soporte TI (Impacto Crítico de Productividad)
-En los sistemas manuales, cuando un docente o expositor reserva el auditorio a las 09:00 hrs, el técnico de TI debe apersonarse con antelación para abrir la cabina, encender proyectores y micrófonos. No obstante, en la práctica el expositor suele retrasarse 30, 45 o hasta 60 minutos. Durante todo ese tiempo, el personal de TI quedaba inmovilizado físicamente en el auditorio esperando la llegada del usuario, imposibilitado de resolver tickets de soporte en otras salas o laboratorios.
-* **Solución del MVP:** El **subsistema de validación QR dinámico** automatiza el Check-in. El técnico únicamente acude cuando el expositor está presente o valida la entrega en menos de 30 segundos mediante escaneo móvil. Si el expositor no llega en la ventana de tolerancia (15 minutos), el sistema marca automáticamente `NO_SHOW`, libera el espacio y notifica al técnico para que continúe con sus labores.
+### 1. El Cuello de Botella del Personal de Soporte TI (Productividad)
+* **Problemática:** Técnicos de TI perdían hasta 1 hora esperando en sitio a expositores retrasados para entregar micrófonos y proyector, retrasando el soporte general del campus.
+* **Solución del MVP:** Validación presencial por **código QR dinámico** en menos de 30 segundos; tolerancia de 15 minutos tras la cual el sistema marca `NO_SHOW` y libera al técnico.
 
-### 2. Desinformación Crónica en las Unidades de Apoyo (Aseo, Guardias y Administración)
-En la operación tradicional, la información de reservas quedaba guardada en una planilla privada del encargado. Como consecuencia:
-* El personal de **Aseo** no sabía si debía limpiar antes del evento o si habría un coffee break que requiriera aseo posterior.
-* El personal de **Guardia y Seguridad** desconocía quiénes eran los expositores externos autorizados para ingresar.
-* **Solución del MVP:** Motor de **Listas de Difusión Automática por Área (`EmailSubscription`)**, que despacha notificaciones automáticas y calendarios semanales personalizados a los correos de Aseo, Guardia y Secretaría.
+### 2. Desinformación Crónica en Unidades de Apoyo (Aseo, Guardias y Administración)
+* **Problemática:** Aseo y seguridad nunca recibían la información a tiempo sobre eventos o servicios especiales (coffee break o invitados externos).
+* **Solución del MVP:** Listas automáticas de difusión (`EmailSubscription`) despachadas automáticamente por áreas operativas.
 
-### 3. Cancelaciones Imprevistas y el Fenómeno del "No-Show"
-Docentes y coordinadores solían solicitar el auditorio "por si acaso" y luego, al cambiar de planes, no avisaban a nadie. El auditorio permanecía vacío mientras otros docentes que necesitaban el espacio eran rechazados por supuesta falta de cupo.
-* **Solución del MVP:**
-  * **Confirmación Anticipada por Token Criptográfico (48h / 24h antes):** Un clic en el correo confirma o libera el espacio sin requerir inicio de sesión engorroso.
-  * **Algoritmo de Prioridad Docente (*PriorityScore*):** Cada No-Show descuenta 20 puntos del perfil del usuario, relegando sus futuras solicitudes frente a docentes responsables.
+### 3. Cancelaciones Imprevistas y No-Shows
+* **Problemática:** Bloqueo de fechas sin uso real y solicitudes a último minuto.
+* **Solución del MVP:** Confirmación anticipada por token sin login (48h/24h) y algoritmo de penalización (*PriorityScore* descontando 20 puntos por No-Show).
 
-### 4. Necesidad de Métricas Cuantitativas (Dashboard de Gestión y Satisfacción)
-Las decisiones directivas y la renovación de equipamiento tecnológico solían basarse en "comentarios al pasar" o quejas informales. No existía un registro de si un proyector fallaba repetidamente o si el soporte brindado era óptimo.
-* **Solución del MVP:** **Dashboard de Analítica en Tiempo Real** y **Encuesta de Satisfacción Post-Evento (1 a 5 estrellas)** que desglosa:
-  * Satisfacción General del Evento (`ratingOverall`).
-  * Estado y Rendimiento del Equipamiento Audiovisual (`ratingEquipment`).
-  * Eficiencia y Trato del Soporte Técnico TI (`ratingSupport`).
-  * Cálculo automatizado de tasa de ocupación efectiva vs horas reservadas.
+### 4. Ceguera Operacional y Falta de Visibilidad en Seguridad (SOC Dashboard)
+* **Problemática:** Inexistencia de registros de accesos sospechosos, ataques de fuerza bruta, tokens QR fraudulentos y falta de métricas duras para la toma de decisiones técnicas y directivas.
+* **Solución del MVP:** **Panel de Control Integral y SOC Dashboard**, que consolida telemetría de ciberseguridad en tiempo real (ataques mitigados, denegaciones 403, intentos de bypass) junto con KPIs de ocupación y encuestas de satisfacción (1 a 5 estrellas).
 
 ---
 
 ## 1.5 Pertinencia con el Perfil de Egreso
-La construcción de este MVP demuestra un dominio integral de las áreas fundamentales de la ingeniería informática:
-* **Arquitectura de Software y Seguridad:** Creación de un sistema de control de acceso RBAC de 6 roles (`OWNER`, `IT_ADMIN`, `IT_SERVICE`, `ASSISTANT`, `PROFESSOR`, `STUDENT`) protegido por tokens JWT cifrados (JWE), hashing bcrypt y cookies de seguridad `HttpOnly`.
-* **Modelado de Datos Transaccional:** Prevención de sobre-reserva mediante bloqueos a nivel de base de datos relacional y queries optimizadas mediante Prisma ORM.
-* **Ingeniería Web Moderna:** Uso de Next.js 15 con React Server Components para garantizar tiempos de carga inferiores a 1 segundo y soporte para lectura móvil de cámaras en terreno.
+La construcción de este MVP con observabilidad de seguridad demuestra dominio en:
+* **Ciberseguridad y Telemetría:** Implementación de pipelines de captura de eventos de auditoría (`SecurityAuditLog`), detección de anomalías y control granular RBAC.
+* **Modelado Transaccional y Escalable:** Optimización de queries analíticas mediante índices B-Tree y partición lógica de logs.
+* **Desarrollo Fullstack de Alto Rendimiento:** Componentes de servidor y cliente en Next.js 15 y React 19 optimizados para renderizado de gráficos y paneles interactivos.
 
 ## 1.6 Relación con los Intereses Profesionales
-Este proyecto consolida mi perfil profesional como **Ingeniero de Software Fullstack y Especialista en Ciberseguridad Web**, demostrando capacidad para:
-* Identificar cuellos de botella operacionales en organizaciones complejas y transformarlos en soluciones automatizadas de alto valor.
-* Diseñar arquitecturas web escalables, seguras y de costo de infraestructura cero mediante tecnologías serverless de última generación.
-* Implementar metodologías de aseguramiento de calidad y buenas prácticas de ciberseguridad reconocidas a nivel global (OWASP Top 10 / ISO 27001).
+Este proyecto consolida mi perfil como **Ingeniero de Software Fullstack y Especialista en Arquitectura Cloud y Ciberseguridad**, demostrando competencias para diseñar plataformas que no solo resuelven problemas logísticos, sino que protegen la infraestructura y proveen métricas de nivel corporativo que cualquier desarrollador y equipo de TI desearía tener.
 
 ## 1.7 Estudio de Factibilidad Técnica, Operativa, Económica y Temporal
 
 | Dimensión de Factibilidad | Análisis de Viabilidad Técnica y Operativa | Estado |
 | :--- | :--- | :---: |
-| **Factibilidad Técnica** | Stack tecnológico consolidado y probado en producción: Next.js 15, TypeScript, Tailwind CSS, Prisma ORM, PostgreSQL en Neon Serverless y bibliotecas de escaneo QR HTML5 estándar. | **VIABLE (100%)** |
-| **Factibilidad Operativa** | Los solicitantes interactúan a través de un navegador web moderno o enlaces de correo; el personal de TI utiliza la cámara de cualquier smartphone corporativo o personal sin instalar software pesado. | **VIABLE (100%)** |
-| **Factibilidad Económica** | Arquitectura 100% *Zero-Cost* en fase de despliegue mediante capas gratuitas de alta capacidad (Vercel Serverless Hosting, Neon Cloud PostgreSQL, GitHub Free y Resend/SMTP). Costo inicial: **$0 USD**. | **VIABLE (100%)** |
-| **Factibilidad Temporal** | Estructurada rigurosamente en un plan de 18 semanas de desarrollo ágil (Fase 1: Semanas 1-4; Fase 2: Semanas 5-12; Fase 3: Semanas 13-18). | **VIABLE (100%)** |
+| **Factibilidad Técnica** | Stack consolidado: Next.js 15, TypeScript, Tailwind CSS, Prisma ORM, PostgreSQL Neon y Chart.js/Recharts para visualización de métricas. | **VIABLE (100%)** |
+| **Factibilidad Operativa** | Los administradores disponen de un centro de control intuitivo con semáforos de alerta y gráficos directos; los técnicos operan con cámara móvil. | **VIABLE (100%)** |
+| **Factibilidad Económica** | Arquitectura *Zero-Cost* en infraestructura cloud serverless (Vercel, Neon PostgreSQL, GitHub Actions). Costo inicial: **$0 USD**. | **VIABLE (100%)** |
+| **Factibilidad Temporal** | Plan de 18 semanas de desarrollo ágil (Fase 1: Semanas 1-4; Fase 2: Semanas 5-12; Fase 3: Semanas 13-18). | **VIABLE (100%)** |
 
 ---
 
@@ -194,36 +183,34 @@ Este proyecto consolida mi perfil profesional como **Ingeniero de Software Fulls
 
 ```mermaid
 graph TD
-    OG["OBJETIVO GENERAL<br>Diseñar, desarrollar e implementar un Producto Mínimo Viable (MVP) web seguro, integral, autónomo y escalable para la gestión, reserva, control de inventario, validación de presencia por QR en sitio y analítica de satisfacción en auditorios."]
+    OG["OBJETIVO GENERAL<br>Diseñar, desarrollar e implementar un Producto Mínimo Viable (MVP) web seguro, integral, autónomo y escalable con Centro de Operaciones de Seguridad (SOC) y Dashboard Analítico para auditorios y espacios multiuso."]
     
-    OG --> OE1["OE1: Formalizar requerimientos del MVP enfocados en mitigar cuellos de botella operacionales y brechas de seguridad."]
-    OG --> OE2["OE2: Diseñar un modelo de datos relacional normalizado en PostgreSQL con restricciones contra colisiones y bitácora de auditoría."]
+    OG --> OE1["OE1: Formalizar requerimientos operacionales, funcionales y de telemetría de ciberseguridad."]
+    OG --> OE2["OE2: Diseñar un modelo de datos relacional normalizado en PostgreSQL con tablas de auditoría y telemetría."]
     OG --> OE3["OE3: Desarrollar la lógica transaccional de backend con Next.js Server Actions y control de acceso RBAC de 6 roles bajo OWASP."]
-    OG --> OE4["OE4: Construir una interfaz web responsiva Mobile-First optimizada para escaneo QR de terreno y escritorios."]
-    OG --> OE5["OE5: Integrar motor de validación QR, difusión multicanal para aseo/guardia/TI y analítica de satisfacción."]
+    OG --> OE4["OE4: Construir una interfaz web responsiva Mobile-First y un Centro de Control SOC interactivo con gráficos en tiempo real."]
+    OG --> OE5["OE5: Integrar motor de validación QR, difusión multicanal para aseo/guardia/TI y telemetría de accesos indebidos."]
     OG --> OE6["OE6: Ejecutar suite de pruebas de calidad ISO 25010 y auditoría de ciberseguridad, desplegando el MVP en infraestructura cloud serverless."]
 ```
 
 ### Objetivo General
-Diseñar, desarrollar e implementar un Producto Mínimo Viable (MVP) web seguro, integral, autónomo y escalable para la gestión de reservas, control de inventario técnico, validación operativa en tiempo real mediante códigos QR y analítica cuantitativa de satisfacción en auditorios y espacios de alta demanda, resolviendo los cuellos de botella de personal técnico, la desinformación en servicios generales y protegiendo la información sensible bajo estándares OWASP Top 10 e ISO/IEC 27001.
+Diseñar, desarrollar e implementar un Producto Mínimo Viable (MVP) web seguro, integral, autónomo y escalable para la gestión de reservas, control de inventario técnico, validación operativa en tiempo real mediante códigos QR, analítica de satisfacción y un Centro de Control de Ciberseguridad (SOC Dashboard) para auditorios y espacios de alta demanda.
 
 ### Objetivos Específicos
-1. **OE1 (Levantamiento y Seguridad):** Formalizar los requerimientos funcionales, no funcionales y de ciberseguridad del MVP, modelando los flujos de Check-in/out, penalización de No-Shows, difusión de calendarios operativos y control de acceso granular.
-2. **OE2 (Modelado de Datos Relacional y Auditoría):** Modelar e implementar un esquema relacional normalizado en 3FN en PostgreSQL (Neon) utilizando Prisma ORM, con índices B-Tree, integridad referencial estricta y trazabilidad de auditoría.
+1. **OE1 (Levantamiento y Seguridad):** Formalizar los requerimientos funcionales, no funcionales y de telemetría de seguridad del MVP, modelando los flujos de Check-in/out, penalización de No-Shows y detección de intrusiones.
+2. **OE2 (Modelado de Datos Relacional y Auditoría):** Modelar e implementar un esquema relacional normalizado en 3FN en PostgreSQL (Neon) utilizando Prisma ORM, con tablas especializadas en eventos de seguridad (`SecurityAuditLog`) e índices optimizados.
 3. **OE3 (Seguridad y Lógica de Negocio):** Implementar la capa de lógica transaccional con Next.js Server Actions y seguridad NextAuth con autenticación JWT, hashing bcrypt y roles RBAC de 6 niveles (`OWNER`, `IT_ADMIN`, `IT_SERVICE`, `ASSISTANT`, `PROFESSOR`, `STUDENT`).
-4. **OE4 (Interfaz y Experiencia de Usuario):** Construir una interfaz de usuario moderna con estética Glassmorphism, completamente responsiva y optimizada para dispositivos móviles (cámara QR para técnicos) y paneles de escritorio.
-5. **OE5 (Automatización e Integraciones Seguras):** Integrar subsistemas de lectura criptográfica de códigos QR, despacho automático de correos por listas de suscripción (Aseo, Guardia, TI) y encuestas de satisfacción inmediata con métricas cuantitativas.
+4. **OE4 (Interfaz y Centro de Control SOC):** Construir una interfaz de usuario moderna con estética Glassmorphism y un Dashboard SOC interactivo con gráficos temporales de eventos, accesos bloqueados y estado del auditorio.
+5. **OE5 (Automatización e Integraciones Seguras):** Integrar subsistemas de lectura criptográfica de códigos QR, despacho automático de correos por listas de suscripción (Aseo, Guardia, TI) y captura de telemetría de incidentes.
 6. **OE6 (Aseguramiento de Calidad y Ciberseguridad):** Ejecutar pruebas unitarias, de integración, rendimiento y análisis estático de vulnerabilidades bajo estándares ISO/IEC 25010 y OWASP, culminando con el despliegue productivo y monitoreo del MVP en Vercel y Neon Cloud.
 
 ## 2.2 Metodología de Desarrollo y Estructura Organizacional (Equipo Simulado de 8 Roles)
-
-El proyecto se gestiona mediante el marco **Scrum**, simulando las funciones especializadas de una célula de ingeniería de software de **8 roles clave**:
 
 ```mermaid
 classDiagram
     class ProductOwner {
         +Levantar Dolores Operacionales
-        +Priorizar Backlog de Features
+        +Priorizar Backlog de Features & SOC
         +Aceptar Criterios de Calidad
     }
     class ScrumMaster {
@@ -234,7 +221,7 @@ classDiagram
     class SoftwareArchitect {
         +Definir Arquitectura C4 Serverless
         +Estandarizar Seguridad y Tokens
-        +Garantizar Escalabilidad Cloud
+        +Disenar Pipeline de Telemetria
     }
     class LeadFullstackDev {
         +Coordinar Integracion de Capas
@@ -242,19 +229,19 @@ classDiagram
         +Code Reviews Estrictos
     }
     class FrontendUIUXDev {
-        +Disenar UI Glassmorphism
+        +Disenar UI Glassmorphism & SOC
         +Implementar Lector QR en Cliente
-        +Garantizar Usabilidad Mobile
+        +Graficos Interactivos Chart.js
     }
     class BackendDatabaseDev {
         +Disenar Schema Prisma Relacional
-        +Crear Indices y Bloqueos SQL
+        +Crear Tablas de SecurityAuditLog
         +Optimizar Consultas y Concurrencia
     }
     class QATestEngineer {
         +Automatizar Pruebas Unitarias/E2E
         +Validar Algoritmos de Colision
-        +Certificar Estandar ISO 25010
+        +Certificar Estandar ISO 25010 / OWASP
     }
     class DevOpsCloudEngineer {
         +Configurar CI/CD GitHub Actions
@@ -274,19 +261,19 @@ classDiagram
 
 | Hito / Entrega | Tipo de Evidencia | Nombre de la Evidencia | Descripción del Entregable | Justificación y Aporte |
 | :---: | :---: | :--- | :--- | :--- |
-| **Fase 1 (Semana 4)** | **Avance** | **Informe Técnico de Definición, SRS y Seguridad** | Documento exhaustivo con problemática raíz, objetivos, arquitectura, ciberseguridad OWASP, metodología y especificación formal de requerimientos del MVP. | Establece los cimientos teóricos, operativos, de seguridad y arquitectura sin ambigüedades. |
-| **Fase 1 (Semana 4)** | **Avance** | **Modelo Entidad-Relación y Schema Prisma** | Archivo declarativo `schema.prisma` y modelos relacionales normalizados listos para migración a PostgreSQL Neon. | Garantiza la estructura de persistencia para soportar concurrencia y reglas operativas. |
+| **Fase 1 (Semana 4)** | **Avance** | **Informe Técnico de Definición, SRS, Seguridad y SOC** | Documento exhaustivo con problemática raíz, objetivos, arquitectura, ciberseguridad OWASP, telemetría y especificación formal de requerimientos. | Establece los cimientos teóricos, operativos, de seguridad y arquitectura sin ambigüedades. |
+| **Fase 1 (Semana 4)** | **Avance** | **Modelo Entidad-Relación y Schema Prisma** | Archivo declarativo `schema.prisma` con modelos relacionales y tabla de logs de seguridad para PostgreSQL Neon. | Garantiza la estructura de persistencia para soportar concurrencia, reglas operativas y auditoría. |
 | **Fase 2 (Semana 8)** | **Avance** | **Módulo Core de Auth, RBAC y Reservas** | MVP funcional con inicio de sesión multi-rol, prevención de colisiones de horario y formulario de reservas. | Valida la lógica de negocio central del auditorio. |
 | **Fase 2 (Semana 12)** | **Avance** | **Subsistema QR, Check-in/out y Mailing** | Lector QR en tiempo real para técnicos, registro de marcas temporales y despacho automático de correos a Aseo/Guardia. | Elimina el cuello de botella de 1 hora de TI e integra a los servicios de apoyo. |
-| **Fase 3 (Semana 16)** | **Final** | **Suite de Pruebas Automatizadas y QA Report** | Batería de pruebas unitarias, de integración y reporte de ciberseguridad bajo estándar ISO 25010 y OWASP. | Certifica la robustez, seguridad y tolerancia a fallos de la solución. |
+| **Fase 3 (Semana 16)** | **Final** | **Centro de Control SOC, Dashboard y Suite QA** | Panel interactivo de telemetría de ciberseguridad, métricas NPS, suite de pruebas automatizadas y reporte de calidad ISO 25010. | Provee observabilidad en tiempo real y certifica la robustez de la solución. |
 | **Fase 3 (Semana 18)** | **Final** | **MVP en Producción y Defensa de Grado** | Despliegue productivo en Vercel/Neon, manual técnico, manual de usuario y presentación final de grado. | Entrega el producto de software totalmente operativo y transferible. |
 
 ## 2.4 Plan de Trabajo Detallado
 
 | ID | Actividad / Tarea | Descripción Técnica | Recursos | Duración | Responsable Simulado | Mitigación de Riesgos |
 | :---: | :--- | :--- | :--- | :---: | :--- | :--- |
-| **T01** | Análisis y Formalización de Requerimientos | Levantamiento de dolores operacionales (TI, aseo, cancelaciones), redacción de casos de uso y SRS del MVP con matriz de seguridad. | Plantillas IEEE 830, herramientas de modelado. | 2 Semanas | Product Owner | *Riesgo:* Alcance difuso.<br>*Mitigación:* Validación mediante matriz de trazabilidad. |
-| **T02** | Modelado de Base de Datos y Restricciones | Diseño de esquemas en Prisma, definición de enums (`ReservationStatus`, `Role`, `EquipmentCategory`) e índices B-Tree. | PostgreSQL Neon, Prisma ORM, VS Code. | 2 Semanas | Backend & DB Dev | *Riesgo:* Solapamiento de horarios.<br>*Mitigación:* Restricciones a nivel de base de datos e índices únicos. |
+| **T01** | Análisis y Formalización de Requerimientos | Levantamiento de dolores operacionales (TI, aseo, cancelaciones), redacción de casos de uso y SRS del MVP con matriz de seguridad y SOC. | Plantillas IEEE 830, herramientas de modelado. | 2 Semanas | Product Owner | *Riesgo:* Alcance difuso.<br>*Mitigación:* Validación mediante matriz de trazabilidad. |
+| **T02** | Modelado de Base de Datos y Restricciones | Diseño de esquemas en Prisma, definición de enums, modelos relacionales y tabla de auditoría `SecurityAuditLog`. | PostgreSQL Neon, Prisma ORM, VS Code. | 2 Semanas | Backend & DB Dev | *Riesgo:* Solapamiento de horarios.<br>*Mitigación:* Restricciones a nivel de base de datos e índices únicos. |
 | **T03** | Arquitectura Base, Repositorio y CI/CD | Configuración de Next.js 15, TypeScript estricto, Tailwind CSS y sincronización con GitHub. | GitHub Actions, Vercel CLI, Node.js. | 1 Semana | DevOps Engineer | *Riesgo:* Incompatibilidad de paquetes.<br>*Mitigación:* Lockfile estricto (`package-lock.json`). |
 | **T04** | Autenticación, Ciberseguridad y Roles RBAC | Configuración de NextAuth, hashing de contraseñas con bcrypt (salt factor >= 10), JWT cifrado y middleware de 6 roles. | NextAuth.js, bcryptjs, Jose, Zod. | 2 Semanas | Backend Dev | *Riesgo:* Vulnerabilidad en rutas.<br>*Mitigación:* Middleware centralizado con denegación por defecto. |
 | **T05** | Formulario Inteligente de Reservas | Vista de solicitud en pasos con requerimientos técnicos (microfonía, streaming, podio, aseo) y validación Zod. | React Hook Form, Tailwind CSS, Lucide Icons. | 3 Semanas | Frontend UI/UX Dev | *Riesgo:* Formularios complejos.<br>*Mitigación:* Diseño por etapas (Wizard) intuitivo. |
@@ -294,7 +281,7 @@ classDiagram
 | **T07** | Módulo de Validación QR Criptográfico | Generación de QR con UUID v4 único y escáner móvil para validación presencial de TI en < 30 seg. | `html5-qrcode`, Web Crypto API. | 2 Semanas | Fullstack Dev | *Riesgo:* Fallas de cámara en celulares.<br>*Mitigación:* Soporte alternativo de búsqueda por token alfanumérico. |
 | **T08** | Control de Inventario y Equipos | Catálogo de equipamiento técnico con estados de operatividad y asignación dinámica por evento. | Prisma ORM, Server Actions. | 2 Semanas | Backend Dev | *Riesgo:* Pérdida de equipos.<br>*Mitigación:* Trazabilidad ligada al Check-out del técnico de TI. |
 | **T09** | Motor de Correos y Listas de Difusión | Despacho automático de cronogramas a listas de Aseo, Guardia y TI, más confirmaciones por token. | Resend / Nodemailer API. | 2 Semanas | Backend Dev | *Riesgo:* SPAM en correos.<br>*Mitigación:* Plantillas HTML limpias y headers autenticados. |
-| **T10** | Módulo de Encuestas y Dashboard Analítico | Sistema de calificación (1-5 estrellas) y panel gráfico de métricas cuantitativas (NPS, No-Shows, ocupación). | Chart.js / Recharts, Tailwind CSS. | 2 Semanas | Frontend Dev | *Riesgo:* Baja tasa de respuesta.<br>*Mitigación:* Encuesta ultra-rápida de 3 clics post Check-out. |
+| **T10** | Centro de Control SOC y Dashboard Analítico | Panel gráfico integral con telemetría de ataques mitigados, accesos no deseados, tasa de ocupación y NPS. | Chart.js / Recharts, Tailwind CSS. | 2 Semanas | Frontend Dev | *Riesgo:* Sobrecarga de datos.<br>*Mitigación:* Filtros interactivos por nivel de severidad y fecha. |
 | **T11** | Pruebas de Calidad y Auditoría de Seguridad | Batería de pruebas unitarias y de concurrencia bajo estándar ISO/IEC 25010 y OWASP. | Vitest / Jest, Playwright, npm audit. | 2 Semanas | QA Test Engineer | *Riesgo:* Errores en producción.<br>*Mitigación:* Pipeline de testing automatizado antes de cada merge. |
 | **T12** | Despliegue en Producción y Cierre | Despliegue en Vercel/Neon, manuales de usuario/técnicos y preparación de defensa de grado. | Vercel Platform, Markdown Docs. | 2 Semanas | Todo el Equipo | *Riesgo:* Variables de entorno erróneas.<br>*Mitigación:* Checklist de despliegue validado. |
 
@@ -322,7 +309,7 @@ gantt
     Entrega Avance Fase 2 (Semana 12)                :crit,    h2,   2026-05-22, 1d
 
     section FASE 3: QA, Certificación y Cierre
-    T10 Dashboard de Satisfacción y Analítica        :         des10, 2026-05-25, 2026-06-08
+    T10 Centro de Control SOC y Dashboard Analítico  :         des10, 2026-05-25, 2026-06-08
     T11 Pruebas de Certificación y Auditoría QA/Sec  :         des11, 2026-06-01, 2026-06-15
     T12 Despliegue en Producción y Auditoría Final   :         des12, 2026-06-08, 2026-06-22
     Entrega y Examen Final de Grado (Semana 18)      :crit,    h3,   2026-06-26, 1d
@@ -330,11 +317,9 @@ gantt
 
 ---
 
-# PARTE III: Arquitectura de Software, Ciberseguridad y Modelado Conceptual
+# PARTE III: Arquitectura de Software, Ciberseguridad, Telemetría y Modelado
 
 ## 3.1 Marco de Ciberseguridad y Protección de Datos Sensibles (OWASP / ISO 27001)
-
-Para garantizar que el sistema cumpla con los estándares institucionales de protección de información sensible (nombres de expositores, correos, agendas académicas, inventario y registros de asistencia), se adopta una arquitectura defensiva en profundidad:
 
 ```mermaid
 graph TD
@@ -355,44 +340,80 @@ graph TD
     C6 --> SEC
 ```
 
-### Medidas de Ciberseguridad Implementadas:
-1. **Cifrado de Credenciales:** Las contraseñas se almacenan mediante el algoritmo `bcrypt` con un factor de trabajo (*cost factor*) de 10, lo que previene ataques de fuerza bruta y tablas Rainbow.
-2. **Protección de Sesiones e Identidades (OWASP A01 / A07):**
-   * Las sesiones se gestionan mediante tokens JWT cifrados (JWE) emitidos por NextAuth.
-   * Se almacenan exclusivamente en cookies con directivas de máxima seguridad:
-     * `HttpOnly`: Impide el acceso al token mediante scripts del lado del cliente (mitigación XSS).
-     * `Secure`: Obliga a que la cookie solo viaje sobre conexiones cifradas HTTPS.
-     * `SameSite=Lax`: Mitiga ataques de falsificación de peticiones en sitios cruzados (CSRF).
-3. **Prevención de Inyecciones SQL y NoSQL (OWASP A03):** Todas las transacciones a la base de datos se ejecutan a través de consultas parametrizadas generadas por el motor de **Prisma ORM**, eliminando la concatenación manual de strings SQL.
-4. **Validación y Sanitización de Payloads (Server-Side Validation):** Todo dato recibido en formularios o Server Actions se valida mediante esquemas estrictos de **Zod**, rechazando entradas maliciosas o campos no tipados.
-5. **Criptografía en Códigos QR y Tokens de Correo:** Los códigos QR y los tokens de confirmación utilizan identificadores únicos universales (UUID v4) con entropía criptográfica pseudoaleatoria, impidiendo la predicción secuencial de tickets de acceso.
-6. **Bitácora de Auditoría Institucional:** Se registran marcas temporales inmutables (`createdAt`, `updatedAt`, `checkInTime`, `checkoutTime`, `checkedInBy`, `checkedOutBy`, `reviewedBy`), garantizando la no-repudiación y auditoría de eventos.
+## 3.2 Centro de Control, Telemetría y Monitoreo de Amenazas (SOC Dashboard)
 
-## 3.2 Diagrama de Casos de Uso del Negocio
+El sistema incorpora un **Dashboard de Ciberseguridad y Operaciones (SOC)** diseñado para brindar observabilidad total tanto a corto plazo (identificación instantánea de anomalías) como a largo plazo (análisis de tendencias de uso y patrones de ataque):
+
+```mermaid
+graph LR
+    subgraph Captura de Eventos en Servidor
+        E1[Fallas de Login / Fuerza Bruta]
+        E2[Denegaciones 403 RBAC]
+        E3[Escaneo QR Expirado / Reutilizado]
+        E4[Activación de Bypass Maestro]
+        E5[Latencia y Concurrencia SQL]
+    end
+
+    subgraph Pipeline de Telemetría
+        P1[Filtro y Sanitización]
+        P2[(SecurityAuditLog Table)]
+    end
+
+    subgraph Centro de Control SOC & KPIs
+        D1[Gráfico Temporal de Ataques Mitigados]
+        D2[Semáforo de Accesos No Deseados]
+        D3[Mapa de Calor de Ocupación]
+        D4[NPS y Satisfacción Cuantitativa]
+    end
+
+    E1 --> P1
+    E2 --> P1
+    E3 --> P1
+    E4 --> P1
+    E5 --> P1
+    P1 --> P2
+    P2 --> D1
+    P2 --> D2
+    P2 --> D3
+    P2 --> D4
+```
+
+### Métricas y Capacidades del Panel de Control (SOC):
+1. **Contador de Ataques y Accesos No Deseados:** Registro en tiempo real de intentos de autenticación fallidos y peticiones bloqueadas por rate limiting.
+2. **Monitoreo de Violaciones de Permisos (RBAC Violations):** Detección de usuarios autenticados que intentan acceder a recursos administrativos sin privilegios (código HTTP 403).
+3. **Auditoría de Tokens QR:** Identificación de intentos de escaneo de códigos QR duplicados, alterados o fuera del horario programado.
+4. **Métricas Operativas del Auditorio:** Tasa de ocupación efectiva semanal, índice de No-Shows, horas hombre ahorradas en soporte técnico y cálculo de Net Promoter Score (NPS).
+5. **Observabilidad del Rendimiento:** Monitoreo de tiempos de respuesta del servidor (TTFB < 800ms) y salud de la base de datos PostgreSQL Neon.
+
+## 3.3 Diagrama de Casos de Uso del Negocio y Seguridad
 
 ```mermaid
 graph TD
     Docente([Docente / Expositor])
     Admin([Administrador / Encargado Auditorio])
     IT([Soporte TI / Validador en Terreno])
+    SecAdmin([Administrador de Seguridad / SOC])
     Servicios([Personal de Aseo y Guardia])
     Visor([Público General / Estudiante])
 
     subgraph MVP Sistema Autónomo de Gestión de Auditorios
-        CU01(CU01: Autenticación y Perfil de Usuario con RBAC)
+        CU01(CU01: Autenticación Segura y Perfil de Usuario)
         CU02(CU02: Solicitar Auditorio con Requerimientos Técnicos)
         CU03(CU03: Confirmar / Liberar Reserva por Token de Email)
         CU04(CU04: Responder Encuesta Cuantitativa de Satisfacción)
         
         CU05(CU05: Evaluar y Dictaminar Solicitudes: Aprobar/Aplazar/Rechazar)
         CU06(CU06: Administrar Catálogo y Estado de Equipos)
-        CU07(CU07: Visualizar Dashboard de Métricas, Ocupación y NPS)
+        CU07(CU07: Visualizar Dashboard de Métricas Operativas y NPS)
         
         CU08(CU08: Validar Ingreso Check-in mediante Escaneo QR < 30s)
         CU09(CU09: Validar Retiro y Devolución Check-out)
         
         CU10(CU10: Recibir Cronograma Automático de Limpieza y Seguridad)
         CU11(CU11: Consultar Cartelera Pública de Eventos)
+
+        CU12(CU12: Monitorear Centro de Control SOC y Alertas de Seguridad)
+        CU13(CU13: Auditar Bitácora de Intentos de Intrusión y Accesos Denegados)
     end
 
     Docente --> CU01
@@ -410,17 +431,22 @@ graph TD
     IT --> CU09
     IT --> CU06
 
+    SecAdmin --> CU01
+    SecAdmin --> CU12
+    SecAdmin --> CU13
+
     Servicios --> CU10
     Visor --> CU11
 ```
 
-## 3.3 Arquitectura de Contenedores y Flujo de Datos (C4 Model)
+## 3.4 Arquitectura de Contenedores y Flujo de Datos (C4 Model)
 
 ```mermaid
 graph TB
     subgraph Capa de Presentación (Dispositivos de Usuario)
         B1["Navegador Web Escritorio<br>(Docentes y Administradores)"]
         B2["Navegador Web Móvil con Cámara<br>(Soporte TI en Terreno)"]
+        B3["Consola de Seguridad / SOC<br>(Administradores de Seguridad)"]
     end
 
     subgraph Capa de Aplicación Cloud (Vercel Serverless)
@@ -429,11 +455,12 @@ graph TB
         AuthModule["NextAuth.js v5<br>(Tokens JWT / Control RBAC 6 Roles)"]
         BusinessLogic["Server Actions & API Handlers<br>(Lógica Transaccional y Algoritmo Anti-Colisión)"]
         QRValidator["Motor Criptográfico de Tokens & QR<br>(Generación y Validación Instantánea)"]
+        TelemetryEngine["Motor de Telemetría & Logging<br>(Captura de Anomalías y Fallas de Autenticación)"]
     end
 
     subgraph Capa de Persistencia Cloud (Neon Serverless)
         PrismaClient["Prisma ORM Client<br>(Tipado Estricto TypeScript)"]
-        PostgresDB[("PostgreSQL 18 Database<br>- Modelos Relacionales Normalizados<br>- Índices B-Tree en Fechas y Estados<br>- Transacciones Atómicas ACID<br>- Cifrado en Reposo AES-256")]
+        PostgresDB[("PostgreSQL 18 Database<br>- Modelos Relacionales Normalizados<br>- Tabla SecurityAuditLog<br>- Índices B-Tree en Fechas y Estados<br>- Transacciones Atómicas ACID")]
     end
 
     subgraph Servicios Externos
@@ -442,20 +469,24 @@ graph TB
 
     B1 -->|HTTPS TLS 1.3 / UI React| AppRouter
     B2 -->|HTTPS TLS 1.3 / Video Stream QR| AppRouter
+    B3 -->|HTTPS TLS 1.3 / SOC Analytics| AppRouter
     AppRouter --> AuthModule
     AppRouter --> BusinessLogic
     BusinessLogic --> QRValidator
+    BusinessLogic --> TelemetryEngine
+    TelemetryEngine --> PrismaClient
     BusinessLogic --> PrismaClient
     PrismaClient --> PostgresDB
     BusinessLogic -->|Despacho Automático| MailingService
 ```
 
-## 3.4 Modelo Entidad-Relación y Estructura de Datos
+## 3.5 Modelo Entidad-Relación y Estructura de Datos (con Logs de Ciberseguridad)
 
 ```mermaid
 erDiagram
     USER ||--o{ RESERVATION : "solicita"
     USER ||--o{ NOTIFICATION : "recibe"
+    USER ||--o{ SECURITY_AUDIT_LOG : "genera_evento"
     RESERVATION ||--o{ RESERVATION_EQUIPMENT : "incluye"
     EQUIPMENT ||--o{ RESERVATION_EQUIPMENT : "asignado_a"
 
@@ -519,6 +550,17 @@ erDiagram
         string equipmentId PK, FK
     }
 
+    SECURITY_AUDIT_LOG {
+        string id PK
+        string eventType "LOGIN_FAILED, RBAC_FORBIDDEN, QR_EXPIRED, BYPASS_USED, BRUTE_FORCE_BLOCK"
+        string severity "INFO, WARN, SECURITY_ALERT, CRITICAL"
+        string ipAddress
+        string userAgent
+        string userId FK "Opcional si no está autenticado"
+        string details "JSON con información contextual"
+        datetime timestamp
+    }
+
     EMAIL_SUBSCRIPTION {
         string id PK
         string email UK
@@ -549,8 +591,6 @@ erDiagram
 
 ## 4.1 Límites del MVP vs Roadmap Post-Proyecto
 
-Para mantener una delimitación formal de ingeniería, se establecen con precisión las fronteras entre el **MVP actual** y las **versiones evolutivas futuras**:
-
 ```mermaid
 graph TD
     subgraph MVP Actual (Fase Titulacion)
@@ -559,7 +599,7 @@ graph TD
         M3[Check-in/out por QR Móvil < 30s]
         M4[Mailing a Aseo, Guardia y TI]
         M5[Dashboard de Métricas & NPS]
-        M6[Ciberseguridad OWASP Top 10]
+        M6[Centro de Control SOC & Audit Logs]
     end
 
     subgraph Roadmap Futuro (Post-MVP Enterprise)
@@ -567,7 +607,7 @@ graph TD
         F2[Domótica IoT: Control de Luces y Proyectores]
         F3[App Móvil Nativa iOS / Android con Push]
         F4[IA Predictiva de Demanda y Horarios]
-        F5[Autenticación Federada SAML / SSO / OAuth2]
+        F5[Detección de Intrusiones con Machine Learning]
     end
 
     MVP -->|Evolución Continua| Roadmap
@@ -575,6 +615,7 @@ graph TD
 
 | Módulo / Capacidad | Estado en MVP (Actual) | Evolución en Roadmap Post-MVP |
 | :--- | :--- | :--- |
+| **Centro de Control SOC** | Panel interactivo de telemetría de ataques, denegaciones y accesos no deseados. | Integración con SIEM corporativo (Splunk / Elastic SIEM) y bloqueo automático de IPs maliciosas. |
 | **Seguridad y Accesos** | Autenticación local robusta con bcrypt y RBAC de 6 roles. | Integración con SSO institucional (Single Sign-On Azure AD / Google Workspace). |
 | **Validación de Presencia** | Escáner QR web móvil ultra-rápido (< 30s). | Torniquetes automatizados con lector NFC / RFID. |
 | **Gestión de Calendario** | Calendario interactivo web en tiempo real. | Sincronización bidireccional con Microsoft 365 y Google Calendar. |
@@ -583,20 +624,20 @@ graph TD
 | **Analítica y Predicción** | Reportes de ocupación, NPS y No-Shows en tiempo real. | Modelos de Machine Learning para recomendación inteligente de salas según tipo de evento. |
 
 ## 4.2 Conclusiones Generales del Informe
-1. El diseño del MVP resuelve una problemática operativa tangible y universal: la pérdida de horas hombre en soporte técnico, la descoordinación de servicios generales y la falta de métricas cuantitativas en la gestión de auditorios.
-2. La incorporación de un marco de ciberseguridad defensiva (OWASP / ISO 27001) garantiza la confidencialidad, integridad y disponibilidad de la información sensible de la institución.
+1. El diseño del MVP resuelve una problemática operativa tangible y universal: la pérdida de horas hombre en soporte técnico, la descoordinación de servicios generales y la falta de visibilidad analítica.
+2. La incorporación del Centro de Control SOC y telemetría en tiempo real dota al sistema de una capa de observabilidad de ciberseguridad sin precedentes, permitiendo detectar incidentes y auditar accesos indebidos tanto en el corto como en el largo plazo.
 3. La delimitación formal como Producto Mínimo Viable permite concentrar el esfuerzo de desarrollo en los módulos de mayor impacto y retorno operacional, manteniendo una arquitectura escalable lista para futuras extensiones.
 4. La implementación de códigos QR dinámicos transforma un proceso manual que demoraba hasta 1 hora en una transacción digital verificada en menos de 30 segundos, liberando al personal técnico para tareas críticas de soporte.
 5. El proyecto articula en su totalidad las cuatro competencias del perfil de egreso, cumpliendo rigurosamente con los estándares técnicos, metodológicos y de seguridad exigidos por la asignatura Capstone.
 
 ## 4.3 Conclusiones Individuales del Proyecto
 * La culminación de la Fase 1 establece una base conceptual, matemática, operativa y de seguridad sólida para el MVP, mitigando de forma definitiva cuellos de botella históricos como la espera pasiva de personal técnico y la desinformación en servicios de apoyo.
-* El modelado relacional en 3FN, el hashing de contraseñas con bcrypt y las restricciones transaccionales a nivel de motor de base de datos proporcionan una garantía formal contra colisiones de reservas, accesos indebidos y asignaciones de inventario duplicadas.
+* El modelado relacional en 3FN, la tabla de telemetría `SecurityAuditLog`, el hashing con bcrypt y las restricciones transaccionales proporcionan una garantía formal contra colisiones de reservas, accesos indebidos y ataques informáticos.
 * La planificación ágil bajo Scrum simulando 8 roles especializados permite abordar el ciclo de vida del software con la rigurosidad, trazabilidad y profesionalismo propios de la industria tecnológica.
 
 ## 4.4 Reflexión Profesional
-* Transformar un conjunto de ineficiencias operacionales reales en un Producto Mínimo Viable funcional, seguro, automatizado y elegante constituye el propósito fundamental de la ingeniería informática.
-* Enfrentar desafíos de ingeniería reales —como la ciberseguridad web, la concurrencia en reservas, la optimización de tiempos de respuesta en terreno mediante cámaras móviles, el despacho automatizado por áreas y la infraestructura serverless de costo cero— me ha permitido consolidar y poner en práctica los conocimientos más avanzados de desarrollo Fullstack y arquitectura de software.
+* Transformar un conjunto de ineficiencias operacionales reales en un Producto Mínimo Viable funcional, seguro, observable y automatizado constituye el propósito fundamental de la ingeniería informática.
+* Enfrentar desafíos de ingeniería avanzados —como la observabilidad de seguridad en tiempo real (SOC), la concurrencia en reservas, la optimización de tiempos de respuesta en terreno mediante cámaras móviles, el despacho automatizado por áreas y la infraestructura serverless de costo cero— me ha permitido consolidar y poner en práctica los conocimientos más avanzados de desarrollo Fullstack y arquitectura de software.
 * Este proyecto representa un MVP de alta fidelidad, transferible y con valor organizacional directo para cualquier institución o empresa que administre recintos de alta demanda.
 
 ---
