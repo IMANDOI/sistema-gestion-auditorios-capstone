@@ -24,7 +24,7 @@ Genera una presentación profesional, moderna, de alto impacto visual y tecnicis
 - **Título Principal:** Sistema Autónomo de Gestión Operativa, Trazabilidad, Horas de TI y Centro de Operaciones (SOC)
 - **Subtítulo:** Producto Mínimo Viable (MVP) de Arquitectura White-Label para Auditorios y Espacios Multiuso
 - **Metadatos:**
-  * Postulante: Benjamín Mandujano
+  * Postulante: Benjamín Abraham Navarrete Hernández
   * Carrera: Ingeniería en Informática / Análisis Programador
   * Asignatura: Proyecto Capstone (PTY4614) - Fase 1: Definición
   * Repositorio GitHub: github.com/IMANDOI/sistema-gestion-auditorios-capstone
