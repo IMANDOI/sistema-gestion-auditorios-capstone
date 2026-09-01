@@ -16,7 +16,33 @@ El diseño de los requerimientos de este MVP responde a la mitigación directa d
 3. **Cancelaciones Imprevistas y No-Shows:** Expositores solicitaban el auditorio y no se presentaban. La solución introduce **confirmación anticipada por token sin login** y el **algoritmo de penalización de prioridad (*PriorityScore*)**.
 4. **Carencia de Métricas Cuantitativas:** Históricamente solo existían percepciones subjetivas. La solución incorpora un **Dashboard de Analítica en tiempo real** con balance de horas utilizadas de TI, tasas de ocupación efectiva y **Encuesta de Calidad por Estrellas (1-5)** con cálculo de Net Promoter Score (NPS).
 
+### 1.3 Alcance del Software (Scope del MVP)
+* **Inclusiones del MVP:**
+  1. Autenticación robusta y control de acceso basado en 6 roles (RBAC).
+  2. Formulario web guiado de reservas con selección de equipamiento audiovisual y requerimientos de aseo.
+  3. Motor transaccional de prevención de colisiones de horario en base de datos PostgreSQL.
+  4. Confirmación anticipada y cancelación rápida mediante tokens criptográficos vía correo electrónico.
+  5. Subsistema de validación presencial por código QR dinámico (UUID v4) en menos de 30 segundos.
+  6. Registro exacto de marcas de tiempo y cómputo de horas de soporte técnico utilizadas ($\Delta T = checkout - checkin$).
+  7. Despacho automático de cronogramas y necesidades especiales a listas de difusión (Aseo, Guardia, TI).
+  8. Dashboard analítico con tasas de ocupación semanal, cálculo de NPS y balance de horas de soporte TI.
+  9. Encuesta de satisfacción cuantitativa post-evento evaluada en 3 dimensiones (1 a 5 estrellas).
+  10. Capa de ciberseguridad defensiva conforme a OWASP Top 10 e ISO 27001.
+
+* **Exclusiones del MVP (Fuera del Alcance):**
+  1. Integración con torniquetes físicos, cerraduras electromagnéticas o lectores de tarjetas RFID/NFC (se utiliza cámara estándar de smartphone).
+  2. Pasarelas de pago para cobro monetario por uso del espacio.
+  3. Sincronización bidireccional en tiempo real con calendarios cerrados de terceros (Microsoft Exchange / Google Calendar API).
+  4. Domótica y actuadores IoT para encendido/apagado automatizado de luces o proyectores.
+  5. Aplicaciones móviles nativas para tiendas de aplicaciones (App Store / Google Play).
+
+* **Supuestos y Restricciones:**
+  1. *Supuesto:* Los dispositivos de los operadores en terreno cuentan con cámara funcional y conexión a Internet.
+  2. *Restricción Temporal:* Desarrollo limitado a 18 semanas académicas del ciclo Capstone.
+  3. *Restricción de Recursos:* Proyecto ejecutado individualmente por un único estudiante con presupuesto de infraestructura de $0 USD (Cloud Serverless).
+
 ---
+
 
 ## 2. Matriz de Roles y Actores del MVP (RBAC)
 
