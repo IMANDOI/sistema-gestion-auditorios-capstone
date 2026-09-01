@@ -81,8 +81,9 @@ El desarrollo se realiza sobre Next.js 15, Prisma ORM y PostgreSQL serverless en
 > **Aclaración de Independencia y Alcance MVP:**
 > El software desarrollado no pertenece a ninguna institución educativa ni empresa privada en particular. Corresponde a una solución genérica, parametrizable y de código abierto orientada a resolver ineficiencias logísticas universales en recintos multiuso.
 
-## 1.2 Definición y Alcance del Producto Mínimo Viable (MVP)
-El MVP abarca la digitalización y automatización del flujo esencial del auditorio:
+## 1.2 Definición, Alcance y Delimitación del Proyecto (Límites del MVP)
+
+El alcance del proyecto se define formalmente bajo los principios de la metodología *Lean Startup* y las buenas prácticas de ingeniería de software, delimitando con precisión las fronteras operacionales y técnicas del Producto Mínimo Viable (MVP):
 
 ```mermaid
 graph LR
@@ -97,6 +98,52 @@ graph LR
     B -->|9. Encuesta Cuantitativa| A
     B -->|10. Dashboard de Analítica & Horas TI| F[Administración y Jefaturas]
 ```
+
+### 1.2.1 Alcance Inclusivo (Módulos y Funcionalidades Incluidas en el MVP)
+1. **Módulo de Autenticación y Control de Acceso (RBAC):**
+   * Registro e inicio de sesión seguro con contraseñas cifradas en `bcrypt` (factor de costo $\ge 10$).
+   * Matriz de autorización para 6 roles jerárquicos (`OWNER`, `IT_ADMIN`, `IT_SERVICE`, `ASSISTANT`, `PROFESSOR`, `STUDENT`).
+   * Manejo de sesiones mediante tokens JWT cifrados en cookies seguras (`HttpOnly`, `Secure`, `SameSite=Lax`).
+2. **Módulo de Gestión de Solicitudes y Prevención de Conflictos:**
+   * Formulario web interactivo en etapas para la reserva de espacios y selección modular de equipamiento técnico (audio, video, transmisión streaming, mobiliario, aseo previo/posterior).
+   * Motor transaccional anti-colisiones en PostgreSQL que impide matemáticamente solapamientos de horario sobre reservas aprobadas o en curso: $\max(T_{inicio1}, T_{inicio2}) < \min(T_{fin1}, T_{fin2})$.
+   * Algoritmo de reputación docente (*PriorityScore*) con penalización automática de 20 puntos por inasistencias no avisadas (`NO_SHOW`).
+3. **Módulo de Dictamen y Coordinación Administrativa:**
+   * Panel de revisión de solicitudes con opciones de Aprobar (`APPROVED`), Aplazar (`POSTPONED`) con propuesta horaria, o Rechazar (`REJECTED`) con motivo formal.
+   * Sistema de confirmación y liberación rápida mediante enlaces con tokens criptográficos despachados por correo electrónico 48h y 24h antes del evento.
+4. **Subsistema de Validación Presencial y Trazabilidad de Horas TI:**
+   * Generación de códigos QR criptográficos dinámicos con identificadores UUID v4 generados por CSPRNG.
+   * Módulo de escaneo web para smartphone mediante cámara estándar (HTML5 QR Scanner), ejecutando el Check-in en menos de 30 segundos y registrando `checkInTime` y `checkedInBy`.
+   * Módulo de Check-out con checklist de devolución de equipos y cálculo automatizado del balance exacto de horas hombre de TI utilizadas ($\Delta T = checkoutTime - checkInTime$).
+5. **Módulo de Comunicación y Difusión por Áreas:**
+   * Gestión de listas de suscripción (`EmailSubscription`) para despacho automático de cronogramas y requerimientos especiales a las cuadrillas de Aseo, Guardias y TI.
+6. **Módulo de Analítica Operativa y Encuestas de Satisfacción:**
+   * Encuesta post-evento estructurada en 3 dimensiones (1 a 5 estrellas) para medir satisfacción general, estado de equipamiento y calidad del soporte TI, con cálculo automatizado de Net Promoter Score (NPS).
+   * Dashboard gráfico para administración con tasas de ocupación efectiva semanal y balance de horas de soporte técnico consumidas por carrera o departamento.
+
+### 1.2.2 Alcance Exclusivo / Límites del Proyecto (Fuera del Alcance del MVP)
+Para asegurar la viabilidad técnica y temporal del proyecto dentro del ciclo de la asignatura Capstone, se declaran explícitamente fuera del alcance de esta versión:
+* **Torniquetes Físicos y Lectores de Hardware Propietario:** No se incluye la integración física con cerraduras electromagnéticas o lectores RFID/NFC en puertas físicas (se valida mediante la cámara estándar de cualquier smartphone del técnico).
+* **Pasarelas de Pago:** No se contempla el cobro monetario ni la integración con pasarelas de pago bancarias por el arriendo de salas.
+* **Sincronización Bidireccional con Calendarios Externos Propietarios:** La sincronización en tiempo real mediante APIs cerradas de Microsoft 365 / Google Calendar queda establecida como parte del Roadmap evolutivo Post-MVP.
+* **Domótica y Actuadores IoT:** No se contempla el encendido/apagado físico automatizado de proyectores o luces mediante protocolos domóticos (Zigbee/Z-Wave).
+* **Aplicaciones Móviles Nativas en Tiendas:** No se desarrollarán aplicaciones nativas para Android o iOS que requieran publicación en Google Play o App Store (la plataforma es 100% web responsiva Mobile-First accesible vía navegador).
+
+### 1.2.3 Supuestos y Restricciones del Proyecto
+* **Supuestos Técnicos:**
+  * Los recintos cuentan con conectividad a Internet (Wi-Fi o datos móviles) para la sincronización de datos al momento del escaneo QR.
+  * Los usuarios disponen de navegadores web modernos compatibles con HTML5 y Web Crypto API.
+* **Restricciones de Proyecto:**
+  * **Temporal:** Duración máxima estricta de 18 semanas académicas para la totalidad de las fases de ingeniería.
+  * **Recurso Humano:** Desarrollo ejecutado individualmente por un único estudiante en el marco de la asignatura Capstone.
+  * **Económica:** Presupuesto de infraestructura de $0 USD, requiriendo el aprovechamiento de capas gratuitas en la nube serverless (Vercel y Neon Cloud).
+
+### 1.2.4 Criterios de Aceptación y Métricas de Éxito del MVP
+* **Tiempo de Validación en Terreno:** Reducción comprobada del tiempo de Check-in del técnico a menos de 30 segundos.
+* **Precisión Transaccional:** Cero colisiones de horario registradas en la base de datos bajo pruebas de concurrencia.
+* **Tiempo de Carga y Rendimiento:** Tiempos de respuesta del servidor (TTFB) inferiores a 800ms bajo el estándar ISO/IEC 25010.
+* **Cobertura de Seguridad:** Cero vulnerabilidades críticas reportadas en auditorías estáticas de código (SAST) y cumplimiento de los requerimientos RS-01 a RS-08.
+
 
 ## 1.3 Áreas de Desempeño y Competencias del Perfil de Egreso
 
