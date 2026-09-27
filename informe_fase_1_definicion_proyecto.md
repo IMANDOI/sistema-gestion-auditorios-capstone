@@ -360,6 +360,77 @@ gantt
     Defensa Final de Grado (Semana 18)               :crit,    h3,   2026-06-26, 1d
 ```
 
+## 2.6 Catálogo Extendido de Requerimientos Funcionales y de Seguridad
+Para asegurar la completitud de la solución frente a los dolores operacionales identificados, se formaliza el siguiente catálogo de 25 requerimientos funcionales (RF) y 10 requerimientos de ciberseguridad defensiva (RS):
+
+### Catálogo Funcional (RF-01 a RF-25):
+* **RF-01 (Autenticación Multi-Rol y Sesiones Seguras):** Inicio de sesión institucional mediante bcrypt (cost factor $\ge 10$) y emisión de JWT (JWE) en cookies `HttpOnly`, `Secure` y `SameSite=Lax`.
+* **RF-02 (Control de Acceso Basado en Roles - RBAC):** Middleware en servidor con verificación de 6 niveles (`OWNER`, `IT_ADMIN`, `IT_SERVICE`, `ASSISTANT`, `PROFESSOR`, `STUDENT`).
+* **RF-03 (Gestión de Perfil de Usuario):** Mantenimiento de información de contacto y políticas de complejidad de claves.
+* **RF-04 (Formulario Asistido de Reserva):** Solicitud en etapas con validación Zod, especificación de asistentes, requerimiento de aseo y selección de equipamiento técnico.
+* **RF-05 (Motor Transaccional Anti-Colisiones):** Verificación atómica en base de datos PostgreSQL que impide sobreposiciones horarias en auditorios ($\max(T_1, T_2) < \min(T_1', T_2')$).
+* **RF-06 (Gestión de Fechas Inhábiles / Blackouts):** Inhabilitación de bloques de calendario por mantenimiento, reparaciones o recesos académicos.
+* **RF-07 (Algoritmo PriorityScore y No-Shows):** Puntuación base de 100 puntos y deducción automática de 20 puntos por cada inasistencia no avisada.
+* **RF-08 (Panel de Dictamen Administrativo):** Revisión de solicitudes con opciones de Aprobar, Aplazar o Rechazar con registro obligatorio de motivos.
+* **RF-09 (Confirmación por Enlace Criptográfico):** Despacho de correo 48h/24h antes con botones directos firmados con tokens HMAC-SHA256 (sin login previo).
+* **RF-10 (Liberación Temprana sin Penalización):** Cancelación voluntaria con 12h de anticipación que libera el bloque para otros usuarios.
+* **RF-11 (Emisión de Códigos QR Únicos):** Generación de identificador UUID v4 criptográfico codificado en formato QR dinámico.
+* **RF-12 (Validación Presencial Check-in < 30s):** Escaneo móvil por el técnico en terreno que registra `checkInTime` e inicia el cronómetro de horas de soporte.
+* **RF-13 (Checklist de Entrega de Equipos):** Verificación física de micrófonos, cables y proyectores entregados al expositor en el Check-in.
+* **RF-14 (Validación de Check-out y Cierre):** Escaneo final de retorno de recinto y confirmación de recepción conforme de hardware.
+* **RF-15 (Cómputo Automatizado de Horas TI):** Cálculo matemático instantáneo de $\Delta T = \text{checkoutTime} - \text{checkInTime}$ acumulado en base de datos.
+* **RF-16 (Registro de Incidencias Técnicas):** Reporte de fallas o desperfectos de equipos que transiciona el ítem a mantenimiento preventivo.
+* **RF-17 (Encuesta Cuantitativa 1 a 5 Estrellas):** Evaluación post-evento en 3 dimensiones (Recinto, Equipamiento, Soporte TI) y cálculo de NPS.
+* **RF-18 (Dashboard de Analítica y Horas TI):** Gráficos reactivos con ocupación efectiva, balance de horas hombre y métricas de calidad.
+* **RF-19 (Exportación de Informes Operativos):** Generación de bitácora histórica descargable en formato CSV y vista resumen imprimible.
+* **RF-20 (Catálogo y Control de Inventario):** Administración de stock disponible vs asignado en categorías de audio, video, cómputo y mobiliario.
+* **RF-21 (Bloqueo de Hardware en Mantención):** Inhabilitación automática de reserva de equipos dados de baja o en reparación.
+* **RF-22 (Difusión a Cuadrillas de Apoyo):** Notificaciones automáticas a listas de Aseo, Guardia y TI para coordinar aperturas y limpieza oportuna.
+* **RF-23 (Cola de Reintentos de Notificación):** Mecanismo de reintentos exponenciales ante fallos de conexión SMTP sin abortar la transacción principal.
+* **RF-24 (Auditoría Inmutable de Eventos):** Registro append-only en `AuditLog` para trazabilidad y no repudio de todas las operaciones administrativas.
+* **RF-25 (Cartelera Pública de Eventos):** Consulta pública en tiempo real de eventos confirmados en el auditorio para información general del campus.
+
+### Catálogo de Ciberseguridad Defensiva Integrada (RS-01 a RS-10):
+* **RS-01:** Hashing de contraseñas con bcrypt (cost factor $\ge 10$) con salt criptográfico.
+* **RS-02:** Sesiones JWT cifradas en cookies con flags `HttpOnly`, `Secure` y `SameSite=Lax`.
+* **RS-03:** Validación server-side estricta de esquemas con Zod contra parameter tampering.
+* **RS-04:** Consultas parametrizadas con Prisma ORM con protección total contra Inyección SQL.
+* **RS-05:** Tokens y códigos QR con alta entropía mediante CSPRNG (UUID v4).
+* **RS-06:** Cabeceras HTTP defensivas (HSTS, CSP, X-Frame-Options: DENY, X-Content-Type-Options: nosniff).
+* **RS-07:** Rate limiting en endpoints sensibles de autenticación y validación de QR.
+* **RS-08:** Trazabilidad inmutable de operadores y marcas de tiempo en base de datos.
+* **RS-09:** Sanitización contra Cross-Site Scripting (XSS) en todos los campos de texto enriquecido.
+* **RS-10:** Almacenamiento seguro de secretos en variables de entorno de servidor sin exposición al frontend.
+
+---
+
+## 2.7 Plan de Aseguramiento de Calidad y Casos de Prueba (ISO 25010 / TC-01 a TC-20)
+
+Para dar estricto cumplimiento al estándar ISO/IEC 25010 y asegurar la confiabilidad del software, se diseñó la siguiente batería de 20 casos de prueba formalizados:
+
+| ID Caso | Requerimiento | Objetivo del Caso de Prueba | Precondiciones | Datos / Acción | Resultado Esperado | Criterio de Aceptación | Estado |
+| :---: | :---: | :--- | :--- | :--- | :--- | :--- | :---: |
+| **TC-01** | RF-01 / RS-01 | Autenticación con credenciales válidas y cookie segura | Usuario registrado en rol `IT_SERVICE` | `email`, `password` válida | Sesión iniciada, cookie HttpOnly emitida | Acceso concedido al panel técnico | **Aprobado** |
+| **TC-02** | RF-01 / RS-07 | Rechazo de autenticación por credencial errónea | Usuario registrado | `email` válido, `password` incorrecta | HTTP 401 Unauthorized genérico | No expone si el correo existe | **Aprobado** |
+| **TC-03** | RF-04 / RF-05 | Bloqueo de colisión de horario entre reservas concurrentes | Reserva `APPROVED` de 10:00 a 12:00 | Solicitud de 11:00 a 13:00 | Rechazo atómico de la transacción | Cero sobreventa en base de datos | **Aprobado** |
+| **TC-04** | RF-04 | Registro exitoso de reserva en bloque libre | Horario disponible | Formulario completo con microfonía | Reserva en estado `PENDING` | Visible en panel de dictamen | **Aprobado** |
+| **TC-05** | RF-02 / RS-08 | Restricción RBAC: Docente intenta forzar aprobación | Sesión en rol `PROFESSOR` | Intento de invocar Server Action `approve` | HTTP 403 Forbidden | Mutación abortada y auditada | **Aprobado** |
+| **TC-06** | RF-08 / RF-11 | Aprobación por Encargado y emisión de QR UUID v4 | Reserva en `PENDING` | Acción `APPROVED` por `ASSISTANT` | Generación de token UUID v4 y QR | QR visible y enviado por correo | **Aprobado** |
+| **TC-07** | RF-09 | Confirmación de asistencia por enlace criptográfico | Correo 24h enviado | Clic en `/confirm?token=...` | Reserva confirmada sin login previo | Actualización inmediata en BD | **Aprobado** |
+| **TC-08** | RF-12 | Validación de Check-in presencial en < 30 segundos | Reserva `APPROVED` | Escaneo móvil de QR por técnico | `checkInTime` y `CHECKED_IN` en < 30s | Cronómetro de soporte iniciado | **Aprobado** |
+| **TC-09** | RF-12 / RS-05 | Rechazo de Check-in con código QR inválido | Pantalla de escaneo | Escaneo de código QR falso o manipulado | Mensaje: "Código QR no válido" | Cero alteración de estados en BD | **Aprobado** |
+| **TC-10** | RF-14 / RF-15 | Cierre con Check-out y cálculo exacto de horas TI ($\Delta T$) | Reserva en `CHECKED_IN` | Escaneo de Check-out y retorno de equipos | Estado `CHECKED_OUT`, $\Delta T = 1.5$ hrs | Cómputo exacto de horas TI | **Aprobado** |
+| **TC-11** | RF-07 | Penalización de PriorityScore tras No-Show | Reserva `APPROVED` no presentada | Disparo de trigger de No-Show | Estado `NO_SHOW`, $-20$ puntos | Puntaje de usuario actualizado | **Aprobado** |
+| **TC-12** | RF-22 | Despacho automático de correo a lista de Aseo | Suscriptor en `ASEO` | Aprobación de reserva con aseo | Envío de correo con horario y detalle | Cuadrilla de aseo informada | **Aprobado** |
+| **TC-13** | RF-17 | Consolidación de encuesta de satisfacción (1 a 5 estrellas) | Reserva `CHECKED_OUT` | Envío de formulario con 5, 4, 5 estrellas | Encuesta persistida; recalcula NPS | Métricas actualizadas en BD | **Aprobado** |
+| **TC-14** | RF-18 | Actualización en tiempo real de métricas en Dashboard | Reservas procesadas | Consulta de panel por `IT_ADMIN` | Métricas y gráficos actualizados | Datos coherentes con registros | **Aprobado** |
+| **TC-15** | RF-20 / RF-21 | Bloqueo de selección de equipamiento en mantención | Equipo en `MAINTENANCE` | Carga de formulario de reserva | Ítem deshabilitado con advertencia | Impide reserva de hardware dañado | **Aprobado** |
+| **TC-16** | RS-04 | Intento de inyección SQL bloqueado por Prisma ORM | Formulario de búsqueda | Inyección `' OR '1'='1` | Consulta parametrizada como texto | Sin inyección ni fuga de datos | **Aprobado** |
+| **TC-17** | RS-09 | Intento de inyección XSS en feedback neutralizado | Formulario de encuesta | Payload `<script>alert('xss')</script>` | Sanitización y escape en DOM | Sin ejecución de código malicioso | **Aprobado** |
+| **TC-18** | RNF-04 | Adaptabilidad responsiva en viewport móvil (360x640) | Navegador en smartphone | Acceso a vista de escáner QR | Interfaz táctil y cámara operativa | Operación fluida en móvil | **Aprobado** |
+| **TC-19** | RF-10 | Cancelación anticipada voluntaria sin penalización | Reserva a más de 12h | Clic en "Liberar Espacio" | Estado `CANCELLED`, bloque liberado | Bloque disponible para otros | **Aprobado** |
+| **TC-20** | RS-06 | Verificación de cabeceras de seguridad HTTP | Petición GET a `/` | Inspección de cabeceras de respuesta | Cabeceras HSTS, CSP, nosniff presentes | Servidor blindado en producción | **Aprobado** |
+
 ---
 
 # PARTE III: Arquitectura de Software, Ciberseguridad y Modelado
