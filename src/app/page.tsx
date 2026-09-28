@@ -12,7 +12,8 @@ import {
   Lock, 
   Mail, 
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  KeyRound
 } from "lucide-react";
 import { loginWithCredentials, quickLoginAsRole } from "@/lib/auth";
 
@@ -56,6 +57,11 @@ export default function LoginPage() {
     }
   };
 
+  const fillCredentials = (userEmail: string, role: string) => {
+    setEmail(userEmail);
+    setPassword("Capstone2026!");
+  };
+
   const redirectToRole = (role: string) => {
     switch (role) {
       case "IT_SERVICE":
@@ -67,8 +73,8 @@ export default function LoginPage() {
       case "ASSISTANT":
         router.push("/encargado");
         break;
-      case "IT_ADMIN":
       case "OWNER":
+      case "IT_ADMIN":
         router.push("/admin");
         break;
       default:
@@ -95,14 +101,40 @@ export default function LoginPage() {
           {/* Quick Access Roles for Testing and Evaluation */}
           <div>
             <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Acceso Rápido por Perfil (Demostración y Evaluación)
+              Acceso Rápido por Perfil (1 Clic)
             </h2>
             <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-              Seleccione el rol que desea simular para ingresar directamente a su portal especializado:
+              Haga clic sobre cualquier perfil para ingresar directamente a su portal asignado:
             </p>
 
             <div className="grid grid-cols-1 gap-2.5">
-              {/* Option 1: Mobile Technician (QR Validator) */}
+              {/* Option 1: Super Admin (Personal email) */}
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("OWNER")}
+                disabled={isLoading}
+                className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-indigo-500 bg-indigo-50/70 hover:bg-indigo-100 text-slate-900 text-left transition-all touch-target"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-700 text-white flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-1.5">
+                      <p className="text-sm font-bold text-indigo-950">Super Administrador (Admin TI)</p>
+                      <span className="text-[10px] bg-indigo-200 text-indigo-900 font-extrabold px-1.5 py-0.2 rounded">
+                        MÁXIMO RANGO
+                      </span>
+                    </div>
+                    <p className="text-xs text-indigo-800 font-mono">
+                      benjamin54144752123@gmail.com
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-indigo-700 flex-shrink-0" />
+              </button>
+
+              {/* Option 2: Mobile Technician (QR Validator) */}
               <button
                 type="button"
                 onClick={() => handleQuickLogin("IT_SERVICE")}
@@ -123,7 +155,7 @@ export default function LoginPage() {
                 <ArrowRight className="w-4 h-4 text-emerald-700 flex-shrink-0" />
               </button>
 
-              {/* Option 2: Professor */}
+              {/* Option 3: Professor */}
               <button
                 type="button"
                 onClick={() => handleQuickLogin("PROFESSOR")}
@@ -144,7 +176,7 @@ export default function LoginPage() {
                 <ArrowRight className="w-4 h-4 text-blue-700 flex-shrink-0" />
               </button>
 
-              {/* Option 3: Assistant / Coordinator */}
+              {/* Option 4: Assistant / Coordinator */}
               <button
                 type="button"
                 onClick={() => handleQuickLogin("ASSISTANT")}
@@ -164,28 +196,52 @@ export default function LoginPage() {
                 </div>
                 <ArrowRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
               </button>
-
-              {/* Option 4: Admin TI */}
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("OWNER")}
-                disabled={isLoading}
-                className="w-full flex items-center justify-between p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 text-slate-900 text-left transition-all touch-target"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-700 text-white flex items-center justify-center flex-shrink-0">
-                    <BarChart3 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">Administrador de TI</p>
-                    <p className="text-xs text-slate-600">
-                      Dashboard analítico • Horas TI • Inventario • Auditoría
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-indigo-700 flex-shrink-0" />
-              </button>
             </div>
+          </div>
+
+          {/* Reference Credentials Box */}
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+            <div className="flex items-center space-x-1.5 font-bold text-slate-900">
+              <KeyRound className="w-4 h-4 text-blue-700" />
+              <span>Credenciales Oficiales de Demostración:</span>
+            </div>
+            <div className="space-y-1 font-mono text-[11px]">
+              <div 
+                onClick={() => fillCredentials("benjamin54144752123@gmail.com", "OWNER")}
+                className="cursor-pointer hover:bg-slate-200 p-1 rounded transition-colors flex justify-between"
+                title="Clic para autocompletar"
+              >
+                <span><strong>Admin:</strong> benjamin54144752123@gmail.com</span>
+                <span className="text-slate-400">Rellenar</span>
+              </div>
+              <div 
+                onClick={() => fillCredentials("soporte.ti@institucion.cl", "IT_SERVICE")}
+                className="cursor-pointer hover:bg-slate-200 p-1 rounded transition-colors flex justify-between"
+                title="Clic para autocompletar"
+              >
+                <span><strong>Técnico:</strong> soporte.ti@institucion.cl</span>
+                <span className="text-slate-400">Rellenar</span>
+              </div>
+              <div 
+                onClick={() => fillCredentials("patricia.gonzalez@institucion.cl", "PROFESSOR")}
+                className="cursor-pointer hover:bg-slate-200 p-1 rounded transition-colors flex justify-between"
+                title="Clic para autocompletar"
+              >
+                <span><strong>Docente:</strong> patricia.gonzalez@institucion.cl</span>
+                <span className="text-slate-400">Rellenar</span>
+              </div>
+              <div 
+                onClick={() => fillCredentials("coordinacion@institucion.cl", "ASSISTANT")}
+                className="cursor-pointer hover:bg-slate-200 p-1 rounded transition-colors flex justify-between"
+                title="Clic para autocompletar"
+              >
+                <span><strong>Encargada:</strong> coordinacion@institucion.cl</span>
+                <span className="text-slate-400">Rellenar</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-500 font-sans border-t border-slate-200 pt-1">
+              Contraseña para todos los perfiles: <code>Capstone2026!</code>
+            </p>
           </div>
 
           <div className="relative">
@@ -194,7 +250,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white px-2 text-slate-500 font-semibold">
-                O ingresar con credenciales
+                O ingresar manualmente
               </span>
             </div>
           </div>
@@ -210,7 +266,7 @@ export default function LoginPage() {
           <form onSubmit={handleManualLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Correo Electrónico Institucional
+                Correo Electrónico
               </label>
               <div className="relative">
                 <input
@@ -218,7 +274,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="usuario@institucion.cl"
+                  placeholder="benjamin54144752123@gmail.com"
                   className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -240,7 +296,6 @@ export default function LoginPage() {
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">Clave de demostración: <code>Capstone2026!</code></p>
             </div>
 
             <button
@@ -259,7 +314,7 @@ export default function LoginPage() {
             <ShieldCheck className="w-4 h-4" />
             <span>Ciberseguridad Defensiva Integrada (OWASP Top 10)</span>
           </div>
-          <p>Cifrado de contraseñas bcrypt • Sesiones JWT HttpOnly • Prisma ORM parametrizado</p>
+          <p>Cifrado bcrypt • Sesiones JWT HttpOnly • Prisma ORM parametrizado</p>
         </div>
       </div>
     </div>
