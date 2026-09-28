@@ -8,6 +8,7 @@ async function main() {
 
   // 1. Clean existing records safely
   await prisma.registroAuditoria.deleteMany({});
+  await prisma.registroMantenimiento.deleteMany({});
   await prisma.encuestaSatisfaccion.deleteMany({});
   await prisma.registroHorasTI.deleteMany({});
   await prisma.reservaEquipamiento.deleteMany({});
@@ -134,6 +135,50 @@ async function main() {
       name: "Consola de Audio Yamaha 12 Canales",
       category: "AUDIO",
       serialNumber: "YAM-MG12-005",
+      status: "AVAILABLE",
+      totalQty: 1,
+      availableQty: 1,
+    },
+  });
+
+  const eqMicMaint = await prisma.equipamiento.create({
+    data: {
+      name: "Micrófono Inalámbrico Shure SM58 (Canal 02)",
+      category: "AUDIO",
+      serialNumber: "SHURE-WL-002-REP",
+      status: "MAINTENANCE",
+      totalQty: 1,
+      availableQty: 0,
+    },
+  });
+
+  const eqClima = await prisma.equipamiento.create({
+    data: {
+      name: "Sistema Climatización Central HVAC Daikin VRV",
+      category: "HVAC",
+      serialNumber: "DAIKIN-HVAC-101",
+      status: "AVAILABLE",
+      totalQty: 1,
+      availableQty: 1,
+    },
+  });
+
+  const eqTelon = await prisma.equipamiento.create({
+    data: {
+      name: "Telón Eléctrico Motorizado 180'' Grandview",
+      category: "PROJECTION",
+      serialNumber: "TELON-GV-180",
+      status: "AVAILABLE",
+      totalQty: 1,
+      availableQty: 1,
+    },
+  });
+
+  const eqRed = await prisma.equipamiento.create({
+    data: {
+      name: "Switch PoE Gigabit Cisco Catalyst 2960-X",
+      category: "COMPUTING",
+      serialNumber: "CISCO-CAT-2960",
       status: "AVAILABLE",
       totalQty: 1,
       availableQty: 1,
@@ -270,7 +315,83 @@ async function main() {
     },
   });
 
-  // 7. Auditoría
+  // 7. Mantenimientos de Auditorio e Implementos
+  const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+  const nineDaysAgo = new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000);
+  const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const inThreeDays = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const eighteenDaysAgo = new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000);
+  const seventeenDaysAgo = new Date(now.getTime() - 17 * 24 * 60 * 60 * 1000);
+  const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+
+  await prisma.registroMantenimiento.createMany({
+    data: [
+      {
+        type: "PREVENTIVO",
+        targetType: "AUDITORIO",
+        auditorioId: auditorio.id,
+        title: "Mantenimiento Preventivo Semestral Climatización y Acondicionamiento Acústico",
+        description: "Limpieza profunda de ductos de inyección HVAC, reemplazo de filtros HEPA y calibración de termostatos para aforo de 150 personas.",
+        severity: "BAJA",
+        status: "RESUELTO",
+        reportedBy: "Carla Morales (Encargada Recintos)",
+        technicianAssigned: "Mantención Duoc / ClimaPro SpA",
+        costEstimate: 145000,
+        startDate: tenDaysAgo,
+        resolvedDate: nineDaysAgo,
+        resolutionNotes: "Filtros reemplazados con éxito. Nivel de ruido del motor acústico reducido a menos de 32dB.",
+      },
+      {
+        type: "CORRECTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId: eqMicMaint.id,
+        title: "Falla de Recepción RF y Conector Batería Sulfatado - Micrófono Shure SM58",
+        description: "El transmisor de mano presenta caídas intermitentes de señal en banda 600MHz y sulfatación leve en resorte de contacto.",
+        severity: "ALTA",
+        status: "EN_MANTENCION",
+        reportedBy: "Rodrigo Tapia (Soporte TI Terreno)",
+        technicianAssigned: "Laboratorio Audiovisual TI",
+        costEstimate: 35000,
+        startDate: twoDaysAgo,
+        expectedEndDate: inThreeDays,
+        resolutionNotes: null,
+      },
+      {
+        type: "PREVENTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId: eqProy.id,
+        title: "Limpieza Óptica de Prismas y Filtro Antipolvo Proyector Láser Epson 4K",
+        description: "Desmontaje seguro de chasis superior, aspirado de filtros electrostáticos de entrada y prueba de convergencia RGB.",
+        severity: "MEDIA",
+        status: "RESUELTO",
+        reportedBy: "Rodrigo Tapia (Soporte TI Terreno)",
+        technicianAssigned: "Servicio Técnico Epson Chile",
+        costEstimate: 85000,
+        startDate: eighteenDaysAgo,
+        resolvedDate: seventeenDaysAgo,
+        resolutionNotes: "Lámpara y diodo láser operando al 98% de rendimiento. Filtro nuevo instalado.",
+      },
+      {
+        type: "CALIBRACION",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId: eqConsola.id,
+        title: "Ajuste de Ecualización Paramétrica y Supresión de Feedback Acústico",
+        description: "Revisión de ganancias en canales 1 a 6 y configuración de compresión multibanda para conferencias y seminarios.",
+        severity: "BAJA",
+        status: "RESUELTO",
+        reportedBy: "Rodrigo Tapia (Soporte TI Terreno)",
+        technicianAssigned: "Mesa de Soporte TI",
+        costEstimate: 0,
+        startDate: fiveDaysAgo,
+        resolvedDate: fiveDaysAgo,
+        resolutionNotes: "Curvas de EQ guardadas en memoria 1 de la consola digital. Sin retroalimentación detectada.",
+      },
+    ],
+  });
+
+  console.log("✅ Registros de mantenimiento created");
+
+  // 8. Auditoría
   await prisma.registroAuditoria.createMany({
     data: [
       {
@@ -280,6 +401,14 @@ async function main() {
         userId: encargado.id,
         ipAddress: "192.168.1.45",
         details: "Aprobada reserva de Arquitectura Cloud con asignación de 3 equipos",
+      },
+      {
+        action: "MANTENIMIENTO_EQUIPO_INICIADO",
+        entity: "Equipamiento",
+        entityId: eqMicMaint.id,
+        userId: tecnico.id,
+        ipAddress: "192.168.1.112",
+        details: "Ingreso a taller por falla de RF y batería sulfatada. Equipo marcado como MANTENIMIENTO.",
       },
       {
         action: "CHECK_OUT_COMPLETADO",
