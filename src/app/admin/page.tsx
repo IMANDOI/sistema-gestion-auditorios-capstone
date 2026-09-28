@@ -7,7 +7,8 @@ import {
   toggleEquipmentStatusAction,
   createSuscripcionAction,
   updateSuscripcionAction,
-  deleteSuscripcionAction
+  deleteSuscripcionAction,
+  updateReservationScheduleAction
 } from "@/lib/actions";
 import { ReservaItem, EquipamientoItem, DashboardMetrics } from "@/lib/types";
 import { 
@@ -30,7 +31,9 @@ import {
   Trash2,
   Plus,
   X,
-  AlertCircle
+  AlertCircle,
+  CalendarClock,
+  ShieldCheck
 } from "lucide-react";
 
 interface SuscripcionItem {
@@ -39,6 +42,13 @@ interface SuscripcionItem {
   email: string;
   department: string;
   isActive: boolean;
+}
+
+function formatDateTimeLocal(d: Date | string) {
+  const date = new Date(d);
+  const offset = date.getTimezoneOffset() * 60000;
+  const local = new Date(date.getTime() - offset);
+  return local.toISOString().slice(0, 16);
 }
 
 export default function AdminPage() {
@@ -67,6 +77,17 @@ export default function AdminPage() {
   const [formActive, setFormActive] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Schedule Modification (Horarios) state
+  const [editingReserva, setEditingReserva] = useState<ReservaItem | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
+  const [editAttendees, setEditAttendees] = useState(50);
+  const [editNotes, setEditNotes] = useState("");
+  const [confirmSecurity, setConfirmSecurity] = useState(false);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -159,6 +180,52 @@ export default function AdminPage() {
     setFormDept(item.department);
     setFormActive(item.isActive);
     setActionError(null);
+  };
+
+  // Schedule Modification openers and handlers
+  const openEditScheduleModal = (r: ReservaItem) => {
+    setEditingReserva(r);
+    setEditTitle(r.title);
+    setEditStartTime(formatDateTimeLocal(r.startTime));
+    setEditEndTime(formatDateTimeLocal(r.endTime));
+    setEditAttendees(r.attendeesEstimate);
+    setEditNotes(r.notes || "");
+    setConfirmSecurity(false);
+    setScheduleError(null);
+    setScheduleSuccess(null);
+  };
+
+  const handleSaveSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReserva) return;
+
+    if (!confirmSecurity) {
+      setScheduleError("Debe marcar la casilla de confirmación de seguridad para proceder.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setScheduleError(null);
+
+    const res = await updateReservationScheduleAction(editingReserva.id, adminUser.id, {
+      title: editTitle,
+      startTime: editStartTime,
+      endTime: editEndTime,
+      attendeesEstimate: editAttendees,
+      notes: editNotes,
+      confirmSecurity: true,
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setScheduleSuccess("¡Horario modificado exitosamente y registrado en la bitácora de auditoría!");
+      setTimeout(() => {
+        setEditingReserva(null);
+      }, 1200);
+      await loadData();
+    } else {
+      setScheduleError(res.error || "Error al modificar el horario.");
+    }
   };
 
   const filteredReservas = data.reservas.filter((r) => {
@@ -298,7 +365,7 @@ export default function AdminPage() {
           })}
         </div>
 
-        {/* TAB 1: RESERVAS */}
+        {/* TAB 1: RESERVAS & AGENDA (WITH SCHEDULE MODIFICATION) */}
         {activeTab === "RESERVAS" && (
           <div className="space-y-4">
             {/* Filter and Search Bar */}
@@ -344,7 +411,7 @@ export default function AdminPage() {
               {filteredReservas.map((r) => (
                 <div
                   key={r.id}
-                  className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-2.5"
+                  className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div>
@@ -373,7 +440,7 @@ export default function AdminPage() {
 
                     <div className="text-xs text-slate-600 sm:text-right font-medium">
                       <span>{new Date(r.startTime).toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" })}</span>
-                      <p className="text-slate-500 text-[11px]">
+                      <p className="text-blue-900 font-bold text-xs">
                         {new Date(r.startTime).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })} -{" "}
                         {new Date(r.endTime).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
                       </p>
@@ -387,17 +454,30 @@ export default function AdminPage() {
                       <span>Token QR: <code className="text-slate-800">{r.qrToken || "No asignado"}</code></span>
                     </div>
 
-                    {r.status === "CHECKED_OUT" && (
-                      <div className="flex items-center space-x-3 text-blue-800 font-bold">
-                        <span>Horas TI Dedicadas: {r.horasTI?.[0]?.hoursDecimal || 1.5} hrs</span>
-                        {r.encuesta && (
-                          <span className="text-amber-600">
-                            ★ {((r.encuesta.ratingOverall + r.encuesta.ratingEquipment + r.encuesta.ratingSupport) / 3).toFixed(1)}/5
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    {/* Admin Schedule Modification Button */}
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => openEditScheduleModal(r)}
+                        className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-900 text-xs font-bold transition-colors touch-target"
+                        title="Modificar Horario o Título del Evento"
+                      >
+                        <CalendarClock className="w-4 h-4 text-blue-700" />
+                        <span>Modificar Horario / Datos</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {r.status === "CHECKED_OUT" && (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs text-blue-900 font-bold">
+                      <span>Horas TI Dedicadas: {r.horasTI?.[0]?.hoursDecimal || 1.5} hrs</span>
+                      {r.encuesta && (
+                        <span className="text-amber-600">
+                          ★ {((r.encuesta.ratingOverall + r.encuesta.ratingEquipment + r.encuesta.ratingSupport) / 3).toFixed(1)}/5
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -464,7 +544,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 3: CUADRILLAS Y FUNCIONARIOS (FULL CRUD) */}
+        {/* TAB 3: CUADRILLAS Y FUNCIONARIOS */}
         {activeTab === "CUADRILLAS" && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -596,7 +676,7 @@ export default function AdminPage() {
             <div>
               <h2 className="text-base font-bold text-slate-900">Bitácora Inmutable de Auditoría Operativa</h2>
               <p className="text-xs text-slate-500">
-                Trazabilidad completa de operaciones sin requerir infraestructura externa de SOC (RF-24 / ISO 27001).
+                Trazabilidad completa de operaciones y modificaciones de horarios (RF-24 / ISO 27001).
               </p>
             </div>
 
@@ -608,7 +688,9 @@ export default function AdminPage() {
                 >
                   <div>
                     <div className="flex items-center space-x-2">
-                      <strong className="text-blue-900 font-mono text-xs">{log.action}</strong>
+                      <strong className={`font-mono text-xs ${log.action === "HORARIO_MODIFICADO_ADMIN" ? "text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200" : "text-blue-900"}`}>
+                        {log.action}
+                      </strong>
                       <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">
                         {log.entity}
                       </span>
@@ -627,6 +709,148 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* Modal: MODIFICAR HORARIOS (CONTROL ADMINISTRATIVO CON CONFIRMACIÓN DE SEGURIDAD) */}
+      {editingReserva && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <CalendarClock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Modificar Horario de Reserva</h3>
+                  <p className="text-xs text-slate-500">Control Administrativo de Agenda y Reasignación</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingReserva(null)}
+                className="text-slate-400 hover:text-slate-800 p-1 rounded-lg hover:bg-slate-100 touch-target"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {scheduleError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs flex items-start space-x-2 font-medium">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-700" />
+                <span>{scheduleError}</span>
+              </div>
+            )}
+
+            {scheduleSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-start space-x-2 font-medium">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-700" />
+                <span>{scheduleSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveSchedule} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Título del Evento
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-semibold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Nueva Fecha y Hora de Inicio *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={editStartTime}
+                    onChange={(e) => setEditStartTime(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Nueva Fecha y Hora de Término *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={editEndTime}
+                    onChange={(e) => setEditEndTime(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Estimación de Asistentes: <strong className="text-blue-800">{editAttendees} personas</strong>
+                </label>
+                <input
+                  type="range"
+                  min="10"
+                  max="150"
+                  step="5"
+                  value={editAttendees}
+                  onChange={(e) => setEditAttendees(Number(e.target.value))}
+                  className="w-full accent-blue-700 cursor-pointer"
+                />
+              </div>
+
+              {/* SECURITY CONFIRMATION BOX REQUESTED BY USER */}
+              <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 space-y-2">
+                <div className="flex items-center space-x-2 text-amber-900 font-bold text-xs">
+                  <ShieldAlert className="w-4 h-4 text-amber-700 flex-shrink-0" />
+                  <span>Confirmación de Seguridad Obligatoria</span>
+                </div>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  Modificar un horario reajusta la agenda del auditorio y notifica a las cuadrillas de servicios. Este cambio quedará firmado bajo su cuenta en la bitácora inmutable.
+                </p>
+
+                <label className="flex items-start space-x-2.5 pt-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={confirmSecurity}
+                    onChange={(e) => setConfirmSecurity(e.target.checked)}
+                    className="w-5 h-5 rounded accent-blue-800 flex-shrink-0 mt-0.5"
+                  />
+                  <span className="text-xs font-bold text-slate-900 leading-tight">
+                    Sí, confirmo bajo mi rol de Administrador que estoy seguro de realizar este cambio de horario.
+                  </span>
+                </label>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingReserva(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!confirmSecurity || isSubmitting}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-md touch-target transition-all flex items-center space-x-1.5 ${
+                    confirmSecurity && !isSubmitting
+                      ? "bg-blue-700 hover:bg-blue-800 text-white"
+                      : "bg-slate-300 text-slate-500 cursor-not-allowed"
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{isSubmitting ? "Validando Colisiones..." : "Guardar Cambios de Horario"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Agregar Funcionario */}
       {isAddModalOpen && (
