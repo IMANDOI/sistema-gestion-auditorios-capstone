@@ -28,16 +28,18 @@ model User {
 }
 
 model Auditorio {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  capacity    Int       @default(120)
-  location    String
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  id             String                  @id @default(cuid())
+  name           String
+  slug           String                  @unique
+  capacity       Int                     @default(120)
+  location       String
+  description    String?
+  isActive       Boolean                 @default(true)
+  status         String                  @default("OPERATIONAL") // OPERATIONAL, MAINTENANCE, PARTIAL_RESTRICTION
+  createdAt      DateTime                @default(now())
 
-  reservas    Reserva[]
+  reservas       Reserva[]
+  mantenimientos RegistroMantenimiento[]
 }
 
 model Reserva {
@@ -77,16 +79,17 @@ model Reserva {
 }
 
 model Equipamiento {
-  id           String    @id @default(cuid())
-  name         String
-  category     String    // AUDIO, PROJECTION, COMPUTING, FURNITURE, OTHER
-  serialNumber String?   @unique
-  status       String    @default("AVAILABLE") // AVAILABLE, IN_USE, MAINTENANCE, DECOMMISSIONED
-  totalQty     Int       @default(1)
-  availableQty Int       @default(1)
-  createdAt    DateTime  @default(now())
+  id             String                  @id @default(cuid())
+  name           String
+  category       String                  // AUDIO, PROJECTION, COMPUTING, FURNITURE, HVAC, OTHER
+  serialNumber   String?                 @unique
+  status         String                  @default("AVAILABLE") // AVAILABLE, IN_USE, MAINTENANCE, DECOMMISSIONED
+  totalQty       Int                     @default(1)
+  availableQty   Int                     @default(1)
+  createdAt      DateTime                @default(now())
 
-  reservas     ReservaEquipamiento[]
+  reservas       ReservaEquipamiento[]
+  mantenimientos RegistroMantenimiento[]
 }
 
 model ReservaEquipamiento {
@@ -136,8 +139,8 @@ model SuscripcionArea {
 
 model RegistroAuditoria {
   id        String   @id @default(cuid())
-  action    String   // RESERVATION_CREATED, APPROVED, CHECK_IN, CHECK_OUT, NO_SHOW, CANCELLED
-  entity    String   // Reserva, Equipamiento, User
+  action    String   // RESERVATION_CREATED, APPROVED, CHECK_IN, CHECK_OUT, NO_SHOW, CANCELLED, MANTENIMIENTO_REGISTRADO, etc.
+  entity    String   // Reserva, Equipamiento, User, Auditorio, Mantenimiento
   entityId  String
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
@@ -145,3 +148,27 @@ model RegistroAuditoria {
   details   String?
   createdAt DateTime @default(now())
 }
+
+model RegistroMantenimiento {
+  id                 String        @id @default(cuid())
+  type               String        // PREVENTIVO, CORRECTIVO, CALIBRACION, MEJORA, DANIO_REPORTE
+  targetType         String        // AUDITORIO, EQUIPAMIENTO
+  auditorioId        String?
+  auditorio          Auditorio?    @relation(fields: [auditorioId], references: [id], onDelete: Cascade)
+  equipamientoId     String?
+  equipamiento       Equipamiento? @relation(fields: [equipamientoId], references: [id], onDelete: Cascade)
+  title              String
+  description        String
+  severity           String        @default("MEDIA") // BAJA, MEDIA, ALTA, CRITICA
+  status             String        @default("EN_MANTENCION") // PROGRAMADO, EN_MANTENCION, ESPERANDO_REPUESTO, RESUELTO
+  reportedBy         String
+  technicianAssigned String?       @default("Servicio Técnico TI Central")
+  costEstimate       Float?        @default(0)
+  startDate          DateTime      @default(now())
+  expectedEndDate    DateTime?
+  resolvedDate       DateTime?
+  resolutionNotes    String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
