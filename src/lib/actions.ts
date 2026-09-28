@@ -11,6 +11,7 @@ export async function getDashboardData() {
     users,
     auditorias,
     suscripciones,
+    mantenimientos,
   ] = await Promise.all([
     prisma.reserva.findMany({
       include: {
@@ -28,7 +29,7 @@ export async function getDashboardData() {
       orderBy: { category: "asc" },
     }),
     prisma.auditorio.findMany({
-      where: { isActive: true },
+      orderBy: { name: "asc" },
     }),
     prisma.user.findMany({
       select: {
@@ -43,10 +44,17 @@ export async function getDashboardData() {
     prisma.registroAuditoria.findMany({
       include: { user: { select: { name: true, role: true } } },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 25,
     }),
     prisma.suscripcionArea.findMany({
       where: { isActive: true },
+    }),
+    prisma.registroMantenimiento.findMany({
+      include: {
+        auditorio: { select: { id: true, name: true } },
+        equipamiento: { select: { id: true, name: true, category: true } },
+      },
+      orderBy: { createdAt: "desc" },
     }),
   ]);
 
@@ -88,6 +96,86 @@ export async function getDashboardData() {
   // Occupancy rate estimate (based on 40 weekly operational hours)
   const tasaOcupacion = Math.min(100, Math.round((totalReservas * 2.5 / 40) * 100));
 
+  // Maintenance & Health Analytics
+  const totalMantenimientos = mantenimientos.length;
+  const activosEnMantencion = mantenimientos.filter((m) => m.status !== "RESUELTO").length;
+  const resueltos = mantenimientos.filter((m) => m.status === "RESUELTO").length;
+
+  const totalEquipos = equipamientos.length;
+  const equiposOperativos = equipamientos.filter((eq) => eq.status === "AVAILABLE" || eq.status === "IN_USE").length;
+  const tasaOperatividadEquipos = totalEquipos > 0 ? Math.round((equiposOperativos / totalEquipos) * 100) : 100;
+
+  const auditorioActual = auditorios[0];
+  const auditorioStatus = (auditorioActual?.status as any) || (auditorioActual?.isActive ? "OPERATIONAL" : "MAINTENANCE");
+
+  let downtimeHorasAcumuladas = 0;
+  let totalDuracionResueltosHoras = 0;
+  mantenimientos.forEach((m) => {
+    const start = new Date(m.startDate).getTime();
+    const end = m.resolvedDate ? new Date(m.resolvedDate).getTime() : Date.now();
+    const diffHours = Math.max(0.5, (end - start) / (1000 * 60 * 60));
+    downtimeHorasAcumuladas += diffHours;
+    if (m.status === "RESUELTO") {
+      totalDuracionResueltosHoras += diffHours;
+    }
+  });
+
+  const mttrHorasPromedio = resueltos > 0 ? parseFloat((totalDuracionResueltosHoras / resueltos).toFixed(1)) : 4.5;
+
+  // Breakdown by Type
+  const tiposCounts: Record<string, number> = {
+    PREVENTIVO: 0,
+    CORRECTIVO: 0,
+    CALIBRACION: 0,
+    MEJORA: 0,
+    DANIO_REPORTE: 0,
+  };
+  mantenimientos.forEach((m) => {
+    tiposCounts[m.type] = (tiposCounts[m.type] || 0) + 1;
+  });
+  const distribucionPorTipo = Object.entries(tiposCounts).map(([tipo, cantidad]) => ({
+    tipo,
+    cantidad,
+  }));
+
+  // Breakdown by Category
+  const categoriasMap: Record<string, { total: number; enMantencion: number }> = {
+    AUDIO: { total: 0, enMantencion: 0 },
+    PROJECTION: { total: 0, enMantencion: 0 },
+    COMPUTING: { total: 0, enMantencion: 0 },
+    HVAC: { total: 0, enMantencion: 0 },
+    FURNITURE: { total: 0, enMantencion: 0 },
+    OTHER: { total: 0, enMantencion: 0 },
+  };
+  equipamientos.forEach((eq) => {
+    const cat = eq.category || "OTHER";
+    if (!categoriasMap[cat]) categoriasMap[cat] = { total: 0, enMantencion: 0 };
+    categoriasMap[cat].total += eq.totalQty;
+    if (eq.status === "MAINTENANCE") {
+      categoriasMap[cat].enMantencion += eq.totalQty;
+    }
+  });
+  const distribucionPorCategoria = Object.entries(categoriasMap).map(([categoria, vals]) => ({
+    categoria,
+    total: vals.total,
+    enMantencion: vals.enMantencion,
+  }));
+
+  // Breakdown by Severity
+  const severidadesMap: Record<string, number> = {
+    BAJA: 0,
+    MEDIA: 0,
+    ALTA: 0,
+    CRITICA: 0,
+  };
+  mantenimientos.forEach((m) => {
+    severidadesMap[m.severity] = (severidadesMap[m.severity] || 0) + 1;
+  });
+  const incidentesPorSeveridad = Object.entries(severidadesMap).map(([severidad, cantidad]) => ({
+    severidad,
+    cantidad,
+  }));
+
   return {
     reservas: JSON.parse(JSON.stringify(reservas)),
     equipamientos: JSON.parse(JSON.stringify(equipamientos)),
@@ -95,6 +183,7 @@ export async function getDashboardData() {
     users: JSON.parse(JSON.stringify(users)),
     auditorias: JSON.parse(JSON.stringify(auditorias)),
     suscripciones: JSON.parse(JSON.stringify(suscripciones)),
+    mantenimientos: JSON.parse(JSON.stringify(mantenimientos)),
     metrics: {
       totalReservas,
       reservasActivas,
@@ -105,6 +194,18 @@ export async function getDashboardData() {
       calificacionPromedio,
       npsScore,
       totalNoShows,
+    },
+    maintenanceMetrics: {
+      totalMantenimientos,
+      activosEnMantencion,
+      resueltos,
+      tasaOperatividadEquipos,
+      auditorioStatus,
+      downtimeHorasAcumuladas: parseFloat(downtimeHorasAcumuladas.toFixed(1)),
+      mttrHorasPromedio,
+      distribucionPorTipo,
+      distribucionPorCategoria,
+      incidentesPorSeveridad,
     },
   };
 }
@@ -486,14 +587,259 @@ export async function submitFeedbackAction(
 
 export async function toggleEquipmentStatusAction(
   equipamientoId: string,
-  newStatus: "AVAILABLE" | "IN_USE" | "MAINTENANCE" | "DECOMMISSIONED"
+  newStatus: "AVAILABLE" | "IN_USE" | "MAINTENANCE" | "DECOMMISSIONED",
+  reason?: string,
+  adminUserId?: string
 ) {
+  const eq = await prisma.equipamiento.findUnique({ where: { id: equipamientoId } });
+  if (!eq) return { success: false, error: "Equipo no encontrado." };
+
   await prisma.equipamiento.update({
     where: { id: equipamientoId },
-    data: { status: newStatus },
+    data: {
+      status: newStatus,
+      availableQty: newStatus === "AVAILABLE" ? eq.totalQty : 0,
+    },
+  });
+
+  if (newStatus === "MAINTENANCE") {
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId,
+        title: `Intervención de Mantenimiento - ${eq.name}`,
+        description: reason?.trim() || `Equipo marcado en mantenimiento preventivo/correctivo por administración.`,
+        severity: "MEDIA",
+        status: "EN_MANTENCION",
+        reportedBy: "Administración / TI",
+        technicianAssigned: "Soporte Audiovisual",
+        startDate: new Date(),
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "EQUIPAMIENTO_EN_MANTENCION",
+        entity: "Equipamiento",
+        entityId: equipamientoId,
+        userId: adminUserId || null,
+        ipAddress: "127.0.0.1",
+        details: `Equipo ${eq.name} puesto en MANTENIMIENTO. Razón: ${reason?.trim() || "Revisión técnica"}`,
+      },
+    });
+  } else if (newStatus === "AVAILABLE") {
+    // If there were any active maintenances for this equipment, mark them as resolved
+    await prisma.registroMantenimiento.updateMany({
+      where: { equipamientoId, status: { not: "RESUELTO" } },
+      data: {
+        status: "RESUELTO",
+        resolvedDate: new Date(),
+        resolutionNotes: "Retorno a disponibilidad operacional confirmado por el Administrador.",
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "EQUIPAMIENTO_DISPONIBLE",
+        entity: "Equipamiento",
+        entityId: equipamientoId,
+        userId: adminUserId || null,
+        ipAddress: "127.0.0.1",
+        details: `Equipo ${eq.name} restaurado a DISPONIBLE (Stock: ${eq.totalQty}).`,
+      },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function createMantenimientoAction(formData: {
+  targetType: "AUDITORIO" | "EQUIPAMIENTO";
+  targetId: string;
+  type: "PREVENTIVO" | "CORRECTIVO" | "CALIBRACION" | "MEJORA" | "DANIO_REPORTE";
+  title: string;
+  description: string;
+  severity: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  technicianAssigned?: string;
+  costEstimate?: number;
+  adminUserId?: string;
+  reportedByName?: string;
+}) {
+  const titleClean = formData.title.trim();
+  const descClean = formData.description.trim();
+  if (!titleClean || !descClean) {
+    return { success: false, error: "Título y descripción son requeridos para la novedad de mantenimiento." };
+  }
+
+  let auditorioId: string | null = null;
+  let equipamientoId: string | null = null;
+  let entityName = "Elemento";
+
+  if (formData.targetType === "AUDITORIO") {
+    auditorioId = formData.targetId;
+    const aud = await prisma.auditorio.findUnique({ where: { id: auditorioId } });
+    entityName = aud?.name || "Auditorio Magna Principal";
+    // Update auditorio status
+    await prisma.auditorio.update({
+      where: { id: auditorioId },
+      data: { status: "MAINTENANCE", isActive: false },
+    });
+  } else {
+    equipamientoId = formData.targetId;
+    const eq = await prisma.equipamiento.findUnique({ where: { id: equipamientoId } });
+    entityName = eq?.name || "Implemento";
+    // Update equipment status
+    await prisma.equipamiento.update({
+      where: { id: equipamientoId },
+      data: { status: "MAINTENANCE", availableQty: 0 },
+    });
+  }
+
+  const created = await prisma.registroMantenimiento.create({
+    data: {
+      type: formData.type,
+      targetType: formData.targetType,
+      auditorioId,
+      equipamientoId,
+      title: titleClean,
+      description: descClean,
+      severity: formData.severity || "MEDIA",
+      status: "EN_MANTENCION",
+      reportedBy: formData.reportedByName || "Administración / TI",
+      technicianAssigned: formData.technicianAssigned || "Mesa de Soporte Audiovisual",
+      costEstimate: formData.costEstimate || 0,
+      startDate: new Date(),
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "MANTENIMIENTO_INICIADO",
+      entity: formData.targetType === "AUDITORIO" ? "Auditorio" : "Equipamiento",
+      entityId: formData.targetId,
+      userId: formData.adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Puesto en mantenimiento: ${entityName}. Motivo: ${titleClean} (Severidad: ${formData.severity}).`,
+    },
   });
 
   revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, item: created };
+}
+
+export async function resolveMantenimientoAction(
+  mantenimientoId: string,
+  resolutionNotes: string,
+  adminUserId?: string
+) {
+  const record = await prisma.registroMantenimiento.findUnique({
+    where: { id: mantenimientoId },
+    include: { auditorio: true, equipamiento: true },
+  });
+
+  if (!record) {
+    return { success: false, error: "Registro de mantenimiento no encontrado." };
+  }
+
+  const resolved = await prisma.registroMantenimiento.update({
+    where: { id: mantenimientoId },
+    data: {
+      status: "RESUELTO",
+      resolvedDate: new Date(),
+      resolutionNotes: resolutionNotes.trim() || "Mantenimiento y pruebas operacionales completadas con éxito.",
+    },
+  });
+
+  // Restore target entity to operational
+  if (record.targetType === "AUDITORIO" && record.auditorioId) {
+    await prisma.auditorio.update({
+      where: { id: record.auditorioId },
+      data: { status: "OPERATIONAL", isActive: true },
+    });
+  } else if (record.targetType === "EQUIPAMIENTO" && record.equipamientoId) {
+    const eq = await prisma.equipamiento.findUnique({ where: { id: record.equipamientoId } });
+    await prisma.equipamiento.update({
+      where: { id: record.equipamientoId },
+      data: { status: "AVAILABLE", availableQty: eq ? eq.totalQty : 1 },
+    });
+  }
+
+  const entityName = record.targetType === "AUDITORIO" ? record.auditorio?.name : record.equipamiento?.name;
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "MANTENIMIENTO_RESUELTO",
+      entity: record.targetType === "AUDITORIO" ? "Auditorio" : "Equipamiento",
+      entityId: (record.auditorioId || record.equipamientoId) as string,
+      userId: adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Mantenimiento resuelto: ${entityName}. Solución: ${resolutionNotes.trim() || "Completado y operativo"}.`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, item: resolved };
+}
+
+export async function updateAuditorioStatusAction(
+  auditorioId: string,
+  newStatus: "OPERATIONAL" | "MAINTENANCE" | "PARTIAL_RESTRICTION",
+  reason: string,
+  adminUserId?: string
+) {
+  const aud = await prisma.auditorio.findUnique({ where: { id: auditorioId } });
+  if (!aud) return { success: false, error: "Auditorio no encontrado." };
+
+  const isActive = newStatus === "OPERATIONAL";
+  await prisma.auditorio.update({
+    where: { id: auditorioId },
+    data: { status: newStatus, isActive },
+  });
+
+  if (newStatus === "MAINTENANCE") {
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "AUDITORIO",
+        auditorioId,
+        title: "Puesta en Mantenimiento General de Auditorio",
+        description: reason.trim() || "Suspensión temporal de agenda para intervención y mejoras de recinto.",
+        severity: "ALTA",
+        status: "EN_MANTENCION",
+        reportedBy: "Administración Central",
+        technicianAssigned: "Mantención Infraestructura",
+        startDate: new Date(),
+      },
+    });
+  } else if (newStatus === "OPERATIONAL") {
+    await prisma.registroMantenimiento.updateMany({
+      where: { auditorioId, status: { not: "RESUELTO" } },
+      data: {
+        status: "RESUELTO",
+        resolvedDate: new Date(),
+        resolutionNotes: "Auditorio retornado a estado Operacional por el Administrador.",
+      },
+    });
+  }
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "AUDITORIO_ESTADO_CAMBIADO",
+      entity: "Auditorio",
+      entityId: auditorioId,
+      userId: adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Estado del auditorio cambiado a ${newStatus}. Razón: ${reason.trim() || "Gestión de operaciones"}`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
   return { success: true };
 }
 
