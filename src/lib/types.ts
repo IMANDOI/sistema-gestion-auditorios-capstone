@@ -82,3 +82,51 @@ export interface DashboardMetrics {
   npsScore: number;
   totalNoShows: number;
 }
+
+export interface AuditorioItem {
+  id: string;
+  name: string;
+  slug: string;
+  capacity: number;
+  location: string;
+  description?: string | null;
+  isActive: boolean;
+  status: "OPERATIONAL" | "MAINTENANCE" | "PARTIAL_RESTRICTION";
+}
+
+export interface RegistroMantenimientoItem {
+  id: string;
+  type: "PREVENTIVO" | "CORRECTIVO" | "CALIBRACION" | "MEJORA" | "DANIO_REPORTE";
+  targetType: "AUDITORIO" | "EQUIPAMIENTO";
+  auditorioId?: string | null;
+  auditorio?: { id: string; name: string } | null;
+  equipamientoId?: string | null;
+  equipamiento?: { id: string; name: string; category: string } | null;
+  title: string;
+  description: string;
+  severity: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  status: "PROGRAMADO" | "EN_MANTENCION" | "ESPERANDO_REPUESTO" | "RESUELTO";
+  reportedBy: string;
+  technicianAssigned?: string | null;
+  costEstimate?: number | null;
+  startDate: string;
+  expectedEndDate?: string | null;
+  resolvedDate?: string | null;
+  resolutionNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaintenanceMetrics {
+  totalMantenimientos: number;
+  activosEnMantencion: number;
+  resueltos: number;
+  tasaOperatividadEquipos: number;
+  auditorioStatus: "OPERATIONAL" | "MAINTENANCE" | "PARTIAL_RESTRICTION";
+  downtimeHorasAcumuladas: number;
+  mttrHorasPromedio: number;
+  distribucionPorTipo: { tipo: string; cantidad: number }[];
+  distribucionPorCategoria: { categoria: string; total: number; enMantencion: number }[];
+  incidentesPorSeveridad: { severidad: string; cantidad: number }[];
+}
+
