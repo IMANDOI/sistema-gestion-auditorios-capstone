@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { PortalHeader } from "@/components/PortalHeader";
-import { getDashboardData, toggleEquipmentStatusAction } from "@/lib/actions";
+import { 
+  getDashboardData, 
+  toggleEquipmentStatusAction,
+  createSuscripcionAction,
+  updateSuscripcionAction,
+  deleteSuscripcionAction
+} from "@/lib/actions";
 import { ReservaItem, EquipamientoItem, DashboardMetrics } from "@/lib/types";
 import { 
   BarChart3, 
@@ -18,8 +24,22 @@ import {
   ShieldAlert, 
   Mail, 
   Users,
-  Search
+  Search,
+  UserPlus,
+  Edit2,
+  Trash2,
+  Plus,
+  X,
+  AlertCircle
 } from "lucide-react";
+
+interface SuscripcionItem {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  isActive: boolean;
+}
 
 export default function AdminPage() {
   const [data, setData] = useState<{
@@ -28,7 +48,7 @@ export default function AdminPage() {
     auditorios: any[];
     users: any[];
     auditorias: any[];
-    suscripciones: any[];
+    suscripciones: SuscripcionItem[];
     metrics: DashboardMetrics;
   } | null>(null);
 
@@ -36,6 +56,17 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Cuadrillas CRUD state
+  const [filterDept, setFilterDept] = useState<string>("ALL");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingOfficial, setEditingOfficial] = useState<SuscripcionItem | null>(null);
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formDept, setFormDept] = useState("ASEO");
+  const [formActive, setFormActive] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = async () => {
     try {
@@ -68,6 +99,68 @@ export default function AdminPage() {
     setIsUpdating(false);
   };
 
+  const handleCreateOfficial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setActionError(null);
+
+    const res = await createSuscripcionAction({
+      name: formName,
+      email: formEmail,
+      department: formDept,
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setFormName("");
+      setFormEmail("");
+      setIsAddModalOpen(false);
+      await loadData();
+    } else {
+      setActionError(res.error || "Error al agregar funcionario.");
+    }
+  };
+
+  const handleUpdateOfficial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOfficial) return;
+
+    setIsSubmitting(true);
+    setActionError(null);
+
+    const res = await updateSuscripcionAction(editingOfficial.id, {
+      name: formName,
+      email: formEmail,
+      department: formDept,
+      isActive: formActive,
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setEditingOfficial(null);
+      await loadData();
+    } else {
+      setActionError(res.error || "Error al actualizar funcionario.");
+    }
+  };
+
+  const handleDeleteOfficial = async (id: string, name: string) => {
+    if (!confirm(`¿Está seguro de eliminar a ${name} de la lista de difusión?`)) {
+      return;
+    }
+    await deleteSuscripcionAction(id);
+    await loadData();
+  };
+
+  const openEditModal = (item: SuscripcionItem) => {
+    setEditingOfficial(item);
+    setFormName(item.name);
+    setFormEmail(item.email);
+    setFormDept(item.department);
+    setFormActive(item.isActive);
+    setActionError(null);
+  };
+
   const filteredReservas = data.reservas.filter((r) => {
     if (filterStatus !== "ALL" && r.status !== filterStatus) return false;
     if (searchQuery.trim()) {
@@ -79,6 +172,11 @@ export default function AdminPage() {
       );
     }
     return true;
+  });
+
+  const filteredSuscripciones = data.suscripciones.filter((s) => {
+    if (filterDept === "ALL") return true;
+    return s.department === filterDept;
   });
 
   return (
@@ -174,12 +272,12 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Tab Navigation to avoid clutter */}
+        {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
           {[
             { id: "RESERVAS", label: `Agenda y Reservas (${data.reservas.length})`, icon: CalendarCheck },
             { id: "INVENTARIO", label: `Inventario Técnico (${data.equipamientos.length})`, icon: Boxes },
-            { id: "CUADRILLAS", label: `Suscripciones Cuadrillas (${data.suscripciones.length})`, icon: Bell },
+            { id: "CUADRILLAS", label: `Funcionarios y Cuadrillas (${data.suscripciones.length})`, icon: Bell },
             { id: "AUDITORIA", label: `Bitácora de Auditoría (${data.auditorias.length})`, icon: History },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -366,36 +464,128 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 3: CUADRILLAS */}
+        {/* TAB 3: CUADRILLAS Y FUNCIONARIOS (FULL CRUD) */}
         {activeTab === "CUADRILLAS" && (
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Listas de Difusión Automática (Servicios Generales)</h2>
-              <p className="text-xs text-slate-500">
-                Coordinación automática de sanitización y aperturas de acceso (RF-22).
-              </p>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h2 className="text-base font-extrabold text-slate-900">
+                  Gestión de Funcionarios y Cuadrillas de Apoyo
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Agregue correos para dar acceso y enviar notificaciones automáticas por área (Aseo, Guardia, TI, Administración).
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFormName("");
+                  setFormEmail("");
+                  setFormDept("ASEO");
+                  setIsAddModalOpen(true);
+                  setActionError(null);
+                }}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-md transition-all touch-target"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>+ Agregar Funcionario</span>
+              </button>
             </div>
 
-            <div className="space-y-2.5">
-              {data.suscripciones.map((s) => (
-                <div
-                  key={s.id}
-                  className="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between"
+            {/* Department Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-700 mr-2">Filtrar por Área:</span>
+              {[
+                { id: "ALL", label: `Todas las Áreas (${data.suscripciones.length})` },
+                { id: "ASEO", label: "Aseo" },
+                { id: "GUARDIA", label: "Guardia y Seguridad" },
+                { id: "TI", label: "Soporte TI" },
+                { id: "COORDINACION", label: "Administración / Coordinación" },
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => setFilterDept(pill.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    filterDept === pill.id
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-                      <Mail className="w-5 h-5" />
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Officials List */}
+            <div className="space-y-2.5">
+              {filteredSuscripciones.length === 0 ? (
+                <div className="p-8 text-center border border-dashed border-slate-300 rounded-2xl text-slate-500 text-xs">
+                  No hay funcionarios registrados en el área seleccionada.
+                </div>
+              ) : (
+                filteredSuscripciones.map((s) => (
+                  <div
+                    key={s.id}
+                    className="p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <Mail className="w-5 h-5 text-blue-700" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <p className="font-bold text-slate-900 text-sm">{s.name}</p>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              s.department === "ASEO"
+                                ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                                : s.department === "GUARDIA"
+                                ? "bg-blue-100 text-blue-900 border border-blue-300"
+                                : s.department === "TI"
+                                ? "bg-indigo-100 text-indigo-900 border border-indigo-300"
+                                : "bg-purple-100 text-purple-900 border border-purple-300"
+                            }`}
+                          >
+                            {s.department}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 font-mono mt-0.5">{s.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900 text-sm">{s.name}</p>
-                      <p className="text-xs text-slate-500 font-mono">{s.email}</p>
+
+                    <div className="flex items-center space-x-2 self-end sm:self-center">
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${
+                          s.isActive
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                        }`}
+                      >
+                        {s.isActive ? "Activo (Recibe Alertas)" : "Inactivo"}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(s)}
+                        className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-colors touch-target"
+                        title="Modificar Funcionario"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOfficial(s.id, s.name)}
+                        className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-red-700 hover:bg-red-50 transition-colors touch-target"
+                        title="Eliminar de la lista"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-                    Área: {s.department}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
@@ -437,6 +627,203 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* Modal: Agregar Funcionario */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <h3 className="font-extrabold text-slate-900 text-base">Agregar Funcionario a Cuadrilla</h3>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-400 hover:text-slate-800 p-1 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {actionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateOfficial} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Nombre Completo / Cargo *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="Ej. Juan Pérez - Turno Mañana"
+                  className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Correo Electrónico Institucional o Personal *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                  placeholder="ejemplo.funcionario@institucion.cl"
+                  className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Este correo recibirá notificaciones de reservas y sanitización apenas se confirme un evento.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Área / Departamento Asignado *
+                </label>
+                <select
+                  value={formDept}
+                  onChange={(e) => setFormDept(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-bold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+                >
+                  <option value="ASEO">Aseo y Sanitización</option>
+                  <option value="GUARDIA">Guardia, Accesos y Seguridad</option>
+                  <option value="TI">Soporte Técnico de TI</option>
+                  <option value="COORDINACION">Administración / Coordinación</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-md touch-target transition-all disabled:opacity-50"
+                >
+                  {isSubmitting ? "Guardando..." : "Guardar Funcionario"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Modificar Funcionario */}
+      {editingOfficial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <h3 className="font-extrabold text-slate-900 text-base">Modificar Funcionario</h3>
+              </div>
+              <button
+                onClick={() => setEditingOfficial(null)}
+                className="text-slate-400 hover:text-slate-800 p-1 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {actionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateOfficial} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Nombre Completo / Cargo *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Correo Electrónico *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                  className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Área / Departamento *
+                </label>
+                <select
+                  value={formDept}
+                  onChange={(e) => setFormDept(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-bold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+                >
+                  <option value="ASEO">Aseo y Sanitización</option>
+                  <option value="GUARDIA">Guardia, Accesos y Seguridad</option>
+                  <option value="TI">Soporte Técnico de TI</option>
+                  <option value="COORDINACION">Administración / Coordinación</option>
+                </select>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center space-x-2 cursor-pointer text-xs font-bold text-slate-800">
+                  <input
+                    type="checkbox"
+                    checked={formActive}
+                    onChange={(e) => setFormActive(e.target.checked)}
+                    className="w-4 h-4 rounded accent-blue-700"
+                  />
+                  <span>Funcionario Activo (Recibe notificaciones automáticas)</span>
+                </label>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingOfficial(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-md touch-target transition-all disabled:opacity-50"
+                >
+                  {isSubmitting ? "Actualizando..." : "Actualizar Cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
