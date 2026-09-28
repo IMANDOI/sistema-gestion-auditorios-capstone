@@ -407,3 +407,103 @@ export async function toggleEquipmentStatusAction(
   revalidatePath("/");
   return { success: true };
 }
+
+export async function createSuscripcionAction(formData: {
+  name: string;
+  email: string;
+  department: string;
+}) {
+  const emailClean = formData.email.trim().toLowerCase();
+  if (!emailClean || !formData.name.trim()) {
+    return { success: false, error: "Debe ingresar nombre y correo válidos." };
+  }
+
+  // Check if already subscribed in same department
+  const existing = await prisma.suscripcionArea.findFirst({
+    where: {
+      email: emailClean,
+      department: formData.department,
+    },
+  });
+
+  if (existing) {
+    return { success: false, error: "El correo ya está registrado en este departamento." };
+  }
+
+  const created = await prisma.suscripcionArea.create({
+    data: {
+      name: formData.name.trim(),
+      email: emailClean,
+      department: formData.department,
+      isActive: true,
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "FUNCIONARIO_AGREGADO",
+      entity: "SuscripcionArea",
+      entityId: created.id,
+      ipAddress: "127.0.0.1",
+      details: `Funcionario agregado a cuadrilla ${formData.department}: ${formData.name} (${emailClean})`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, item: created };
+}
+
+export async function updateSuscripcionAction(
+  id: string,
+  data: {
+    name: string;
+    email: string;
+    department: string;
+    isActive: boolean;
+  }
+) {
+  const updated = await prisma.suscripcionArea.update({
+    where: { id },
+    data: {
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      department: data.department,
+      isActive: data.isActive,
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "FUNCIONARIO_MODIFICADO",
+      entity: "SuscripcionArea",
+      entityId: id,
+      ipAddress: "127.0.0.1",
+      details: `Datos actualizados: ${data.name} (${data.department}) - Activo: ${data.isActive}`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, item: updated };
+}
+
+export async function deleteSuscripcionAction(id: string) {
+  const item = await prisma.suscripcionArea.findUnique({ where: { id } });
+
+  await prisma.suscripcionArea.delete({
+    where: { id },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "FUNCIONARIO_ELIMINADO",
+      entity: "SuscripcionArea",
+      entityId: id,
+      ipAddress: "127.0.0.1",
+      details: `Eliminado funcionario ${item?.name || id} (${item?.department || "General"})`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true };
+}
+
