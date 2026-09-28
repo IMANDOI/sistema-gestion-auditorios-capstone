@@ -248,6 +248,95 @@ export async function rejectReservationAction(reservaId: string, reviewerId: str
   return { success: true };
 }
 
+export async function updateReservationScheduleAction(
+  reservaId: string,
+  adminUserId: string,
+  data: {
+    title: string;
+    startTime: string;
+    endTime: string;
+    attendeesEstimate: number;
+    notes?: string;
+    confirmSecurity: boolean;
+  }
+) {
+  if (!data.confirmSecurity) {
+    return {
+      success: false,
+      error: "Debe confirmar explícitamente el cambio de horario por motivos de seguridad.",
+    };
+  }
+
+  const start = new Date(data.startTime);
+  const end = new Date(data.endTime);
+
+  if (start >= end) {
+    return {
+      success: false,
+      error: "La hora de término debe ser posterior a la hora de inicio.",
+    };
+  }
+
+  const current = await prisma.reserva.findUnique({
+    where: { id: reservaId },
+  });
+
+  if (!current) {
+    return { success: false, error: "La reserva no existe." };
+  }
+
+  // Anti-collision check against OTHER approved/in-progress reservations
+  const overlapping = await prisma.reserva.findFirst({
+    where: {
+      id: { not: reservaId },
+      auditorioId: current.auditorioId,
+      status: { in: ["APPROVED", "CHECKED_IN"] },
+      AND: [
+        { startTime: { lt: end } },
+        { endTime: { gt: start } },
+      ],
+    },
+  });
+
+  if (overlapping) {
+    return {
+      success: false,
+      error: `Conflicto de horario: El nuevo bloque se solapa con la reserva confirmada "${overlapping.title}".`,
+    };
+  }
+
+  const oldSchedule = `${new Date(current.startTime).toLocaleString("es-CL")} - ${new Date(current.endTime).toLocaleTimeString("es-CL")}`;
+  const newSchedule = `${start.toLocaleString("es-CL")} - ${end.toLocaleTimeString("es-CL")}`;
+
+  const updated = await prisma.reserva.update({
+    where: { id: reservaId },
+    data: {
+      title: data.title.trim(),
+      startTime: start,
+      endTime: end,
+      attendeesEstimate: Number(data.attendeesEstimate),
+      notes: data.notes,
+    },
+  });
+
+  // Log in immutable audit trail
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "HORARIO_MODIFICADO_ADMIN",
+      entity: "Reserva",
+      entityId: reservaId,
+      userId: adminUserId,
+      ipAddress: "127.0.0.1",
+      details: `Horario modificado por Administrador para "${data.title}". Anterior: [${oldSchedule}] -> Nuevo: [${newSchedule}]`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, reserva: updated };
+}
+
+
 export async function processCheckInAction(qrToken: string, tecnicoId: string) {
   const reserva = await prisma.reserva.findFirst({
     where: {
