@@ -10,7 +10,15 @@ import {
   deleteSuscripcionAction,
   updateReservationScheduleAction
 } from "@/lib/actions";
-import { ReservaItem, EquipamientoItem, DashboardMetrics } from "@/lib/types";
+import { 
+  ReservaItem, 
+  EquipamientoItem, 
+  DashboardMetrics,
+  AuditorioItem,
+  RegistroMantenimientoItem,
+  MaintenanceMetrics
+} from "@/lib/types";
+import MaintenanceDashboard from "@/components/MaintenanceDashboard";
 import { 
   BarChart3, 
   Clock, 
@@ -33,7 +41,8 @@ import {
   X,
   AlertCircle,
   CalendarClock,
-  ShieldCheck
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 
 interface SuscripcionItem {
@@ -55,14 +64,16 @@ export default function AdminPage() {
   const [data, setData] = useState<{
     reservas: ReservaItem[];
     equipamientos: EquipamientoItem[];
-    auditorios: any[];
+    auditorios: AuditorioItem[];
     users: any[];
     auditorias: any[];
     suscripciones: SuscripcionItem[];
+    mantenimientos: RegistroMantenimientoItem[];
     metrics: DashboardMetrics;
+    maintenanceMetrics: MaintenanceMetrics;
   } | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"RESERVAS" | "INVENTARIO" | "CUADRILLAS" | "AUDITORIA">("RESERVAS");
+  const [activeTab, setActiveTab] = useState<"RESERVAS" | "MANTENIMIENTO" | "INVENTARIO" | "CUADRILLAS" | "AUDITORIA">("RESERVAS");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -115,7 +126,12 @@ export default function AdminPage() {
   const handleToggleHardware = async (eq: EquipamientoItem) => {
     setIsUpdating(true);
     const nextStatus = eq.status === "AVAILABLE" ? "MAINTENANCE" : "AVAILABLE";
-    await toggleEquipmentStatusAction(eq.id, nextStatus);
+    await toggleEquipmentStatusAction(
+      eq.id, 
+      nextStatus, 
+      "Ajuste rápido de estado desde Inventario Técnico", 
+      adminUser?.id
+    );
     await loadData();
     setIsUpdating(false);
   };
@@ -343,6 +359,11 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
           {[
             { id: "RESERVAS", label: `Agenda y Reservas (${data.reservas.length})`, icon: CalendarCheck },
+            { 
+              id: "MANTENIMIENTO", 
+              label: `Salud y Mantenimiento (${data.maintenanceMetrics?.activosEnMantencion || 0} en taller)`, 
+              icon: Wrench 
+            },
             { id: "INVENTARIO", label: `Inventario Técnico (${data.equipamientos.length})`, icon: Boxes },
             { id: "CUADRILLAS", label: `Funcionarios y Cuadrillas (${data.suscripciones.length})`, icon: Bell },
             { id: "AUDITORIA", label: `Bitácora de Auditoría (${data.auditorias.length})`, icon: History },
@@ -484,7 +505,29 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* TAB 2: INVENTARIO */}
+        {/* TAB 2: SALUD OPERACIONAL & MANTENIMIENTO DEL AUDITORIO Y HARDWARE */}
+        {activeTab === "MANTENIMIENTO" && (
+          <MaintenanceDashboard
+            auditorio={
+              data.auditorios[0] || {
+                id: "default",
+                name: "Auditorio Magna Principal",
+                location: "Edificio A - Nivel Central",
+                capacity: 150,
+                isActive: true,
+                status: "OPERATIONAL",
+                slug: "auditorio-magna-principal",
+              }
+            }
+            equipamientos={data.equipamientos}
+            mantenimientos={data.mantenimientos || []}
+            metrics={data.maintenanceMetrics}
+            currentUser={adminUser}
+            onRefresh={loadData}
+          />
+        )}
+
+        {/* TAB 3: INVENTARIO */}
         {activeTab === "INVENTARIO" && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
