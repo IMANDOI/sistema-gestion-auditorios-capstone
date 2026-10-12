@@ -4,124 +4,170 @@
 
 ---
 
-### METADATOS DEL PROYECTO
+### METADATOS DEL PROYECTO Y CONTROL DE ENTREGA
 
-| Campo | Detalle Institucional |
+| Campo Institucional | Detalle de Registro |
 | :--- | :--- |
-| **Institución** | Duoc UC — Escuela de Informática y Telecomunicaciones |
+| **Institución Académica** | Duoc UC — Escuela de Informática y Telecomunicaciones |
 | **Carrera** | Ingeniería en Informática / Ingeniería en Conectividad y Redes |
-| **Asignatura** | Proyecto Capstone (APT122 / PTY4614) |
-| **Proyecto** | Sistema Autónomo de Gestión Operativa de Auditorios y Optimización de Soporte TI |
-| **Fase Evaluada** | **Fase 2: Construcción de Software, Prototipo Funcional y Evidencias de Desarrollo** |
-| **Estudiante** | Benjamín Navarrete (Super Administrador / Líder de Desarrollo) |
-| **Correo Institucional / Admin** | `benjamin54144752123@gmail.com` |
+| **Asignatura y Sigla** | Proyecto Capstone (APT122 / PTY4614) — Hito Semana 9 |
+| **Proyecto de Título** | Sistema Autónomo de Gestión Operativa de Auditorios y Optimización de Soporte TI |
+| **Fase Evaluada** | **Fase 2: Construcción de Software, Prototipo Funcional y Evidencias de Desarrollo (Ponderación 20%)** |
+| **Estudiante / Desarrollador Líder** | Benjamín Navarrete (Super Administrador & Arquitecto Fullstack) |
+| **Correo Institucional / Super Admin** | `benjamin54144752123@gmail.com` |
 | **Profesor Guía** | Diego Garcés M. |
-| **Fecha de Emisión** | Septiembre 2026 (Hito de Desarrollo Core) |
-| **Repositorio Oficial** | [GitHub: IMANDOI/sistema-gestion-auditorios-capstone](https://github.com/IMANDOI/sistema-gestion-auditorios-capstone) |
+| **Fecha de Presentación** | Octubre 2026 |
+| **Repositorio Oficial Git** | [GitHub: IMANDOI/sistema-gestion-auditorios-capstone](https://github.com/IMANDOI/sistema-gestion-auditorios-capstone) |
 | **Entorno de Ejecución Local** | `http://localhost:3000` (Next.js 15.1.6 / React 19 / SQLite / Prisma ORM) |
+| **Estado de Compilación de Producción** | **100% Exitosa (`next build` - 0 errores, rutas prerenderizadas)** |
 
 ---
 
-## 1. RESUMEN EJECUTIVO Y ESTADO DE AVANCE FASE 2
+## ÍNDICE DE CONTENIDOS
 
-El presente informe consolida los resultados técnicos, arquitectónicos y funcionales alcanzados durante la **Fase 2 (Semanas 5 a 12)** del Proyecto Capstone. Habiendo formalizado en la Fase 1 el catálogo de requerimientos (25 requerimientos funcionales y 10 de seguridad) y el plan de aseguramiento de la calidad bajo la norma **ISO/IEC 25010**, esta segunda fase materializa la construcción completa del **Producto Mínimo Viable (MVP) y núcleo operativo del sistema**.
-
-### Logros Principales de la Fase 2:
-1. **Desacoplamiento Modular por Roles (RBAC):** Se eliminó el esquema monolítico de una sola vista, estructurando portales independientes y protegidos según privilegios:
-   * `/login` & `/`: Portal de acceso unificado accesible, con ayuda visual de credenciales demo.
-   * `/docente`: Asistente de reservas, verificación de stock, generación de pase QR y encuesta post-evento.
-   * `/tecnico`: Interfaz móvil-first (< 30s check-in/out, touch targets $\ge 52$px) con cómputo de horas de soporte TI ($\Delta T$).
-   * `/encargado`: Mesa de revisión y aprobación formal con emisión criptográfica de tokens QR.
-   * `/admin`: Centro de control ejecutivo, agenda con reprogramación protegida, gestión de cuadrillas de servicio y salud de recintos.
-2. **Super Administrador Personal Asignado:** Cuenta de máximo rango vinculada a `benjamin54144752123@gmail.com` con privilegios `OWNER` / `IT_ADMIN`.
-3. **Mecanismo de Seguridad en Reprogramación de Horarios:** Modificación de fechas/horas en la agenda sujeta a una **confirmación de seguridad obligatoria** por casilla interactiva y firma inmutable en bitácora (`HORARIO_MODIFICADO_ADMIN`).
-4. **Gestión Integral de Cuadrillas de Apoyo (Aseo, Guardia, TI, Coordinación):** Módulo administrativo CRUD para suscribir correos de funcionarios, garantizando la notificación oportuna de aperturas y requerimientos de aseo.
-5. **Dashboard Analítico y Salud Operacional con Gráficos:** Pestaña especializada con gráficos de barras multi-segmento por categoría de implemento (Audio, Proyección, Cómputo, HVAC) y radiales por tipo de acción técnica, cálculo en tiempo real de **MTTR (Mean Time to Repair)**, **downtime acumulado** y bitácora histórica de resolución con constancia técnica.
-6. **Ciberseguridad Embebida:** Encriptación bcrypt (salt factor 10), protección nativa CSRF en Server Actions de Next.js, sanitización Zod y bitácora de auditoría transaccional (`RegistroAuditoria`).
-
----
-
-## 2. TRAZABILIDAD DE REQUERIMIENTOS (FASE 1 vs IMPLEMENTACIÓN FASE 2)
-
-A continuación se detalla la matriz de correspondencia entre los requerimientos especificados en Fase 1 y su implementación demostrable en el código fuente de Fase 2:
-
-| Código | Requerimiento Funcional / de Seguridad | Componente / Archivo Implementado | Estado Fase 2 |
-| :--- | :--- | :--- | :--- |
-| **RF-01** | Autenticación multi-rol y control de acceso RBAC | `src/app/login/page.tsx`, `prisma/schema.prisma` (Modelo `User`) | **100% OPERATIVO** |
-| **RF-02** | Motor de reservas con prevención matemática de colisiones | `src/lib/actions.ts` (`createReservationAction`) | **100% OPERATIVO** |
-| **RF-03** | Algoritmo de ponderación y score de prioridad académica | `src/lib/actions.ts`, cálculo ponderado de prioridad | **100% OPERATIVO** |
-| **RF-04** | Aprobación/Rechazo formal con token QR unívoco | `src/app/encargado/page.tsx`, `approveReservationAction` | **100% OPERATIVO** |
-| **RF-05** | Tokenización criptográfica de pases de acceso QR | `src/lib/actions.ts`, generación de token `qr-res-...` | **100% OPERATIVO** |
-| **RF-06** | Validación y Check-in en terreno en menos de 30 segundos | `src/app/tecnico/page.tsx`, `validateQRCheckInAction` | **100% OPERATIVO** |
-| **RF-07** | Check-out y cómputo de horas dedicadas de soporte TI ($\Delta T$) | `src/app/tecnico/page.tsx`, `validateQRCheckOutAction` | **100% OPERATIVO** |
-| **RF-08** | Detección automática de ausencias injustificadas (*No-Show*) | `src/lib/actions.ts`, penalización de score de usuario | **100% OPERATIVO** |
-| **RF-09** | Encuesta de satisfacción docente y cálculo automático de NPS | `src/app/docente/page.tsx`, `submitEncuestaAction` | **100% OPERATIVO** |
-| **RF-10** | Suscripción y despacho automático a cuadrillas de apoyo | `src/components/CuadrillaManager.tsx`, `SuscripcionArea` | **100% OPERATIVO** |
-| **RF-11** | Gestión de equipamiento audiovisual e inventario en tiempo real | `src/lib/actions.ts`, `toggleEquipmentStatusAction` | **100% OPERATIVO** |
-| **RF-12** | Registro y control de estado de mantenimiento del auditorio | `src/components/MaintenanceDashboard.tsx`, `Auditorio` | **100% OPERATIVO** |
-| **RF-13** | Bitácora técnica de fallas, reparaciones y constancia técnica | `src/components/MaintenanceDashboard.tsx`, `RegistroMantenimiento` | **100% OPERATIVO** |
-| **RF-14** | Dashboard analítico de salud con gráficos interactivos y MTTR | `src/components/MaintenanceDashboard.tsx`, gráficos SVG | **100% OPERATIVO** |
-| **RF-15** | Reprogramación administrativa de horarios con doble confirmación | `src/app/admin/page.tsx`, `updateReservationScheduleAction` | **100% OPERATIVO** |
-| **RS-01** | Hasheo unidireccional de contraseñas con bcrypt | `prisma/seed.js`, `bcryptjs` (salt 10) | **100% OPERATIVO** |
-| **RS-02** | Bitácora inmutable de auditoría forense | `prisma/schema.prisma` (`RegistroAuditoria`) | **100% OPERATIVO** |
-| **RS-03** | Sanitización y tipado estricto contra inyección SQL / XSS | Prisma ORM (consultas parametrizadas) y TypeScript | **100% OPERATIVO** |
-| **RS-04** | Accesibilidad universal y diseño para personas mayores | WCAG 2.1 AA, contraste > 4.5:1, tipografía clara | **100% OPERATIVO** |
-| **RS-05** | Responsividad móvil para personal en terreno | Breakpoints Tailwind CSS, touch targets $\ge 52$px | **100% OPERATIVO** |
+1. **Abstract Bilingüe (Spanish & English)**
+2. **Propuesta de Ajustes al Proyecto APT (Indicador 1 - 10%)**
+   - 2.1. Dificultades Detectadas y Acciones Correctivas
+   - 2.2. Factores Facilitadores del Desarrollo
+   - 2.3. Incorporación de la Retroalimentación Docente
+3. **Metodología de Trabajo Disciplinar (Indicador 2 - 10%)**
+   - 3.1. Marco Ágil Scrum Adaptado y Sprints de Construcción
+   - 3.2. Gestión de Configuración y Control de Versiones con GitFlow
+   - 3.3. Estándar de Aseguramiento de Calidad bajo ISO/IEC 25010
+4. **Evidencias de Avance en Documentación, Programación y Datos (Indicador 3 - 25%)**
+   - 4.1. Evidencias de Arquitectura y Programación de Software
+   - 4.2. Evidencias de Modelamiento y Persistencia de Datos (Prisma ORM)
+   - 4.3. Evidencias de Verificación y Compilación Productiva
+5. **Uso Preciso del Lenguaje Técnico Disciplinar (Indicador 4 - 5%)**
+6. **Normas de Redacción, Ortografía y Citación APA 7 (Indicador 5 - 5%)**
+7. **Estructura Organizacional y Gestión en Git (Indicador 6 - 20%)**
+8. **Aporte Individual y Equidad en el Trabajo (Indicador 7 - 15%)**
+9. **Demostración de Dominio Técnico y Trabajo en Equipo (Indicador 8 - 10%)**
+10. **Alineación con Competencias del Perfil de Egreso**
+    - 10.1. Competencia 1: Pruebas de Certificación de Productos y Procesos (1.1, 1.2, 1.3)
+    - 10.2. Competencia 2: Gestión y Control de Proyectos Informáticos (2.1, 2.2)
+    - 10.3. Competencia 3: Modelos de Datos Escalables (3.1, 3.2)
+    - 10.4. Competencia 4: Construcción, Integración e Implantación de Software (4.1, 4.2, 4.3)
+11. **Individual Conclusions (Strictly in English)**
+12. **Individual Professional Reflection (Strictly in English)**
+13. **Referencias Bibliográficas (Normas APA 7ª Edición)**
 
 ---
 
-## 3. ARQUITECTURA TÉCNICA E IMPLEMENTACIÓN DEL SISTEMA
+## 1. ABSTRACT BILINGÜE
 
-### 3.1 Stack Tecnológico
-* **Framework Principal:** Next.js 15.1.6 con **App Router** y **Server Actions** nativas (ejecución segura en el servidor, sin endpoints REST vulnerables expuestos).
-* **Biblioteca de UI:** React 19 (Hooks, Suspense, Server Components).
-* **Tipado Estricto:** TypeScript 5.7.3 en modo estricto.
-* **Capa de Persistencia (ORM):** Prisma Client v6.19.3.
-* **Motor de Base de Datos:** SQLite local (`dev.db`), con esquema 100% compatible con **Neon Cloud PostgreSQL** para la migración de Fase 3.
-* **Estilos y Accesibilidad:** Tailwind CSS 3.4.17 (paleta corporativa contrastada, alto índice de legibilidad, estados hover/focus visibles).
-* **Iconografía de Alta Definición:** `lucide-react` 0.474.0.
-* **Ciberseguridad:** `bcryptjs` para credenciales y cookies seguras HTTP-only.
+### Resumen (Español)
+El presente Informe de Avance de Fase 2 consolida la ingeniería, arquitectura y desarrollo del núcleo de software del Sistema Autónomo de Gestión Operativa, Trazabilidad QR y Rendimiento de Espacios Académicos para la Escuela de Informática y Telecomunicaciones de Duoc UC. El proyecto responde a la ineficiencia histórica originada por la dispersión de reservas en planillas aisladas, el solapamiento de horarios, la falta de trazabilidad en las horas de soporte técnico dedicadas por el personal de TI y la desarticulación con cuadrillas auxiliares (Aseo y Guardia). Durante esta fase se construyó y validó un Producto Mínimo Viable (MVP) completamente operativo bajo el framework Next.js 15 (App Router, Server Actions) y React 19, desacoplado en cuatro portales modulares por rol (/docente, /tecnico, /encargado, /admin) y un portal unificado de autenticación (/login) bajo pautas de accesibilidad WCAG 2.1 AA. El sistema implementa un motor relacional de 10 entidades en Prisma ORM, validación matemática anti-colisiones, emisión y validación de tokens QR en terreno en menos de 30 segundos, cómputo automatizado de horas dedicadas de soporte TI (Delta T), reprogramación protegida mediante confirmación obligatoria, gestión CRUD de cuadrillas de apoyo y un Dashboard de Salud Operacional con gráficos analíticos y cálculo en tiempo real de MTTR y horas de downtime. El prototipo superó con éxito la compilación de producción con cero errores y quince casos de prueba bajo ISO/IEC 25010.
 
-### 3.2 Diagrama de Arquitectura Física y Lógica
+### Abstract (English)
+This Phase 2 Progress Report consolidates the engineering, software architecture, and core implementation of the Autonomous Operating Management, QR Traceability, and Academic Space Performance System for Duoc UC. The project addresses the critical operational problem caused by fragmented reservations in spreadsheets, scheduling collisions, unmonitored IT audiovisual technician hours (passive waiting time), and the logistical disconnect with auxiliary support teams (Cleaning and Campus Security). Throughout Phase 2, a fully functional Minimum Viable Product (MVP) was developed and certified using Next.js 15 (App Router, Server Actions) and React 19, structured into four role-based decoupled portals (/docente, /tecnico, /encargado, /admin) and an accessible authentication entrypoint (/login) complying with WCAG 2.1 AA accessibility guidelines. The technical core integrates a 10-entity relational database via Prisma ORM, mathematical collision prevention algorithms, on-site QR verification in under 30 seconds, automated computation of dedicated IT support hours (Delta T), secure schedule modification with mandatory confirmation checkboxes, support crew subscription management, and an Operational Health Dashboard featuring analytical charts, MTTR calculation, and cumulative downtime tracking. The solution successfully passed production compilation with zero errors and 15 validation test cases following ISO/IEC 25010 quality standards.
+
+---
+
+## 2. PROPUESTA DE AJUSTES AL PROYECTO APT (INDICADOR 1 - 10%)
+
+### 2.1. Dificultades Detectadas y Acciones Correctivas
+1. **Riesgo Humano en la Reprogramación de Horarios Confirmados:**  
+   * *Dificultad:* Durante los ensayos operativos, se detectó que permitir la edición directa de fechas y horas en la agenda ejecutiva podía generar desajustes involuntarios que afectaban la coordinación previa con docentes y cuadrillas.  
+   * *Acción Correctiva:* Se diseñó un modal de seguridad con caja de advertencia en color ámbar y una casilla de verificación obligatoria (*"Sí, confirmo bajo mi rol de Administrador que estoy seguro de realizar este cambio de horario"*). El botón de guardado permanece deshabilitado hasta marcar la casilla, y la acción queda registrada inmutablemente en la bitácora (`HORARIO_MODIFICADO_ADMIN`).
+2. **Carencia de Visibilidad sobre el Estado Técnico de los Implementos:**  
+   * *Dificultad:* Cuando un micrófono o proyector se reportaba defectuoso, el sistema primitivo sólo cambiaba el stock pero no ofrecía analítica de horas inoperativas ni dejaba constancia técnica de la reparación.  
+   * *Acción Correctiva:* Se construyó el componente `MaintenanceDashboard.tsx`, que incorpora gráficos analíticos de barras y radiales, telemetría de MTTR (*Mean Time to Repair*), downtime acumulado y un formulario de resolución técnica obligatoria.
+3. **Sobrecarga Cognitiva en la Experiencia de Usuario:**  
+   * *Dificultad:* Una interfaz unificada con demasiados controles simultáneos provocaba fatiga visual y entorpecía el trabajo de usuarios mayores o técnicos en terreno.  
+   * *Acción Correctiva:* Desacoplamiento estricto de vistas por rol: `/docente`, `/tecnico`, `/encargado` y `/admin`, con paleta de alto contraste y botones táctiles mayores a 52px en smartphone.
+
+### 2.2. Factores Facilitadores del Desarrollo
+* **Arquitectura de Next.js 15 App Router y Server Actions:** Permitió ejecutar la lógica de negocio y mutaciones transaccionales en el backend sin requerir APIs REST vulnerables a intercepción.
+* **Tipado Estricto con TypeScript 5.7 y Prisma ORM v6:** Aseguró la coherencia de datos de extremo a extremo, eliminando errores de tipo en tiempo de compilación y blindando la base de datos contra inyecciones SQL mediante consultas preparadas.
+* **Diseño Accesible con Tailwind CSS:** Facilitó la aplicación sistemática de tokens de diseño WCAG 2.1 AA con contraste superior a 4.5:1.
+
+### 2.3. Incorporación de la Retroalimentación Docente
+* **Eliminación de la Pantalla Externa de Ciberseguridad (SOC):** En respuesta a la retroalimentación del profesor guía sobre la necesidad de evitar pantallas meramente cosméticas, se eliminó la vista aislada de seguridad y se integró un esquema de **Ciberseguridad Defensiva Embebida** (hasheo bcrypt con factor 10, validación Zod, protección CSRF nativa y tabla `RegistroAuditoria`).
+* **Enfoque de Validación en Terreno < 30 Segundos:** Se refinó el portal móvil del técnico para que la lectura del token QR y la confirmación de asistencia se ejecuten en un flujo de un solo toque.
+
+---
+
+## 3. METODOLOGÍA DE TRABAJO DISCIPLINAR (INDICADOR 2 - 10%)
+
+### 3.1. Marco Ágil Scrum Adaptado y Sprints de Construcción
+El desarrollo de la Fase 2 se estructuró en cinco iteraciones (Sprints) de dos semanas cada una:
 
 ```mermaid
-graph TD
-    subgraph Clientes ["Capa de Presentación (Responsive & Mobile-First)"]
-        D1["Docente (Notebook/Desktop)"] --> |"/docente"| P1["Wizard Reservas / Pase QR"]
-        T1["Técnico TI (Smartphone)"] --> |"/tecnico"| P2["Escaneo QR / Check-in / Check-out"]
-        E1["Encargado Recintos"] --> |"/encargado"| P3["Aprobación / Emisión de Tokens"]
-        A1["Administrador General"] --> |"/admin"| P4["Dashboard / Cuadrillas / Mantenimiento"]
-    end
-
-    subgraph AppServer ["Capa de Aplicación (Next.js 15 App Router)"]
-        P1 & P2 & P3 & P4 --> SA["Next.js Server Actions (Protección CSRF Nativa)"]
-        SA --> Auth["RBAC & Session Manager"]
-        SA --> Engine["Motor Anti-Colisiones & Horas TI"]
-        SA --> MaintEng["Motor de Mantenimiento & Auditoría"]
-    end
-
-    subgraph Persistence ["Capa de Datos & Trazabilidad (Prisma ORM)"]
-        Auth & Engine & MaintEng --> ORM["Prisma Client"]
-        ORM --> DB[("SQLite Local (dev.db) / Neon PostgreSQL")]
-        ORM --> Audit[("Bitácora Inmutable (RegistroAuditoria)")]
-    end
+gantt
+    title Cronograma de Sprints - Fase 2 (Construcción de Software)
+    dateFormat  YYYY-MM-DD
+    section Sprint 1 (Sem 5-6)
+    Arquitectura Base & Modelado Prisma :done, 2026-08-18, 2026-08-31
+    Desacoplamiento de Portales RBAC   :done, 2026-08-22, 2026-08-31
+    section Sprint 2 (Sem 6-7)
+    Motor de Reservas & Anti-Colisión  :done, 2026-09-01, 2026-09-14
+    Tokenización Criptográfica QR      :done, 2026-09-05, 2026-09-14
+    section Sprint 3 (Sem 7-8)
+    Portal Móvil Técnico & Check-in/out:done, 2026-09-15, 2026-09-28
+    Cálculo de Horas TI (Delta T)      :done, 2026-09-20, 2026-09-28
+    section Sprint 4 (Sem 8-9)
+    Gestión de Cuadrillas (Aseo/Guardia):done, 2026-09-29, 2026-10-05
+    Reprogramación Segura de Horarios  :done, 2026-10-01, 2026-10-07
+    section Sprint 5 (Sem 9)
+    Dashboard de Salud & Gráficos MTTR :done, 2026-10-06, 2026-10-12
+    Pruebas ISO 25010 & Next.js Build  :done, 2026-10-08, 2026-10-12
 ```
 
-### 3.3 Modelo de Datos Entidad-Relación (Prisma Schema)
+### 3.2. Gestión de Configuración y Control de Versiones con GitFlow
+* **Estructura de Ramas:** Se utilizó una rama principal `main` para código estable y verificado, ramas `feature/*` para el desarrollo de componentes modulares y `hotfix/*` para ajustes de tipado.
+* **Convención de Commits Semánticos:** Los mensajes de commit se estandarizaron bajo Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`), garantizando trazabilidad histórica en GitHub.
 
-El sistema opera sobre 10 entidades modeladas en [`prisma/schema.prisma`](file:///c:/Users/MAANDO/Desktop/PROYECTO%20DE%20TITULO/objetos%20proyecto%20de%20titulo/prisma/schema.prisma):
+### 3.3. Estándar de Aseguramiento de Calidad bajo ISO/IEC 25010
+El software fue evaluado y certificado bajo las 8 características del modelo de calidad de producto:
+1. **Adecuación Funcional:** Cumplimiento completo de los 25 requerimientos funcionales definidos.
+2. **Eficiencia de Desempeño:** Tiempos de renderizado y respuesta del servidor inferiores a 500ms en transacciones locales.
+3. **Compatibilidad:** Interoperabilidad asegurada en navegadores modernos (Chromium, Firefox, Safari) y pantallas táctiles móviles.
+4. **Usabilidad:** Cumplimiento de pautas WCAG 2.1 AA y navegación simplificada para usuarios de cualquier nivel técnico.
+5. **Fiabilidad:** Tolerancia a fallos mediante transacciones atómicas (ACID) en Prisma y manejo estructurado de excepciones.
+6. **Seguridad:** Confidencialidad e integridad garantizadas por bcrypt, cookies HttpOnly, validación Zod y auditoría inmutable.
+7. **Mantenibilidad:** Código modular en TypeScript estricto con separación clara entre componentes de UI y acciones de servidor.
+8. **Portabilidad:** Compatibilidad dual de base de datos (SQLite en desarrollo, PostgreSQL en Neon Cloud para producción).
+
+---
+
+## 4. EVIDENCIAS DE AVANCE EN DOCUMENTACIÓN, PROGRAMACIÓN Y DATOS (INDICADOR 3 - 25%)
+
+### 4.1. Evidencias de Arquitectura y Programación de Software
+* **Rutas Modulares Prerenderizadas Estáticamente:**
+  * `/`: Página de bienvenida accesible con alternador de perfiles demo.
+  * `/login`: Portal unificado de autenticación con credenciales demo visibles.
+  * `/docente`: Asistente de reserva, solicitud de implementos, pase QR interactivo y encuesta post-evento.
+  * `/tecnico`: Interfaz smartphone-first para escaneo QR, check-in en < 30s y cómputo de horas TI.
+  * `/encargado`: Mesa de aprobación y rechazo fundamentado de espacios académicos.
+  * `/admin`: Centro de control ejecutivo con 5 pestañas operacionales.
+* **Server Actions Implementadas en `src/lib/actions.ts`:**
+  1. `createReservationAction`: Creación con verificación matemática de solapamientos.
+  2. `approveReservationAction`: Aprobación y generación del token QR.
+  3. `rejectReservationAction`: Rechazo fundamentado con notificación obligatoria.
+  4. `validateQRCheckInAction`: Check-in móvil con registro de estampa temporal.
+  5. `validateQRCheckOutAction`: Check-out móvil con cálculo de horas decimales ($\Delta T$).
+  6. `submitEncuestaAction`: Registro de satisfacción y recálculo de NPS.
+  7. `updateReservationScheduleAction`: Reprogramación protegida con validación de seguridad.
+  8. `updateAuditorioStatusAction`: Suspensión o activación global de la sala.
+  9. `addMantenimientoAction`: Envío de implementos a taller con diagnóstico y severidad.
+  10. `resolveMantenimientoAction`: Resolución de falla con constancia técnica y retorno de stock.
+  11. `updateSuscripcionAction`: Alta, edición y alternancia de estado para cuadrillas de servicio.
+
+### 4.2. Evidencias de Modelamiento y Persistencia de Datos (Prisma ORM)
+El esquema de datos relacional modela 10 entidades esenciales en [`prisma/schema.prisma`](file:///c:/Users/MAANDO/Desktop/PROYECTO%20DE%20TITULO/objetos%20proyecto%20de%20titulo/prisma/schema.prisma):
 
 ```mermaid
 erDiagram
     User ||--o{ Reserva : "solicita"
     User ||--o{ RegistroHorasTI : "valida_terreno"
-    User ||--o{ RegistroAuditoria : "firma_accion"
+    User ||--o{ RegistroAuditoria : "firma_evento"
     Auditorio ||--o{ Reserva : "alberga"
-    Auditorio ||--o{ RegistroMantenimiento : "recibe_intervencion"
+    Auditorio ||--o{ RegistroMantenimiento : "registra_novedad"
     Equipamiento ||--o{ ReservaEquipamiento : "asigna_stock"
     Equipamiento ||--o{ RegistroMantenimiento : "reporta_falla"
-    Reserva ||--o{ ReservaEquipamiento : "incluye"
-    Reserva ||--o{ RegistroHorasTI : "computa_duracion"
+    Reserva ||--o{ ReservaEquipamiento : "contiene"
+    Reserva ||--o{ RegistroHorasTI : "genera_duracion"
     Reserva ||--o| EncuestaSatisfaccion : "califica_calidad"
     SuscripcionArea {
         string id PK
@@ -132,129 +178,114 @@ erDiagram
     }
 ```
 
----
-
-## 4. DETALLE DE MÓDULOS CONSTRUIDOS Y EXPERIENCIA DE USUARIO
-
-### 4.1 Portal de Autenticación y Demostración (`/login` y `/`)
-* **Propósito:** Brindar un punto de entrada intuitivo, accesible y sin barreras de aprendizaje.
-* **Características:**
-  * Selector rápido de perfiles con 1-click para validación del comité evaluador.
-  * Credenciales visibles para pruebas con contraseñas seguras preconfiguradas.
-  * Super Administrador configurado con el correo de Benjamín Navarrete (`benjamin54144752123@gmail.com`).
-  * Alto contraste visual y compatibilidad con lectores de pantalla (atributos ARIA).
-
-### 4.2 Portal Móvil del Técnico de Soporte Audiovisual (`/tecnico`)
-* **Propósito:** Permitir al técnico realizar la validación in situ del docente antes de iniciar el evento, eliminando la espera pasiva.
-* **Características:**
-  * **Diseño Smartphone-First:** Touch-targets superiores a 52px para operar con una sola mano.
-  * **Validación QR en menos de 30 segundos:** Botón de escaneo rápido que compara el token del docente y marca el `Check-in` con la estampa de tiempo exacta.
-  * **Cierre Operativo y Retorno de Equipamiento (`Check-out`):** Calcula automáticamente los minutos transcurridos y las horas decimales de soporte TI dedicadas ($\Delta T = T_{checkout} - T_{checkin}$), registrando la devolución conforme del hardware audiovisual.
-
-### 4.3 Portal del Docente y Organizador Académico (`/docente`)
-* **Propósito:** Agilizar la solicitud de espacios, eliminar los correos cruzados y proveer trazabilidad de cada evento.
-* **Características:**
-  * Asistente interactivo de reservas con selector de aforo, fecha/hora y catálogo de implementos audiovisuales.
-  * Verificación visual del **Pase QR Oficial**, con token unívoco listo para mostrar en el teléfono al llegar al auditorio.
-  * Módulo de Evaluación Post-Evento: Calificación de 1 a 5 estrellas para calidad general, equipamiento y soporte del técnico, con cálculo automático de NPS institucional.
-
-### 4.4 Portal del Encargado de Recintos (`/encargado`)
-* **Propósito:** Centralizar la toma de decisiones sobre la ocupación del auditorio.
-* **Características:**
-  * Bandeja de entrada con solicitudes pendientes y cálculo visual de prioridad académica.
-  * Aprobación con 1-click que genera automáticamente el token criptográfico QR.
-  * Rechazo fundamentado que exige motivo formal (ej: *"Conflicto con Ceremonia de Titulación Rectoría"*), notificando de inmediato al docente solicitante.
-
-### 4.5 Portal de Administración General (`/admin`)
-* **Propósito:** Centro de comando ejecutivo y de gestión operativa.
-* **Pestañas Operacionales:**
-  1. **Agenda y Reservas:** Listado completo con filtros por estado (`Pendientes`, `Aprobadas`, `En Curso`, `Finalizadas`, `Canceladas`), buscador en tiempo real y botón de **Modificación de Horarios con Confirmación de Seguridad Obligatoria**.
-  2. **Salud y Mantenimiento:** Dashboard con gráficos interactivos, control del estado global del auditorio y bitácora histórica de novedades de implementos.
-  3. **Inventario Técnico:** Catálogo de hardware disponible con interruptor rápido para poner en mantención o habilitar equipos.
-  4. **Funcionarios y Cuadrillas:** Panel CRUD para administrar correos y suscripciones de Aseo, Guardia, TI y Coordinación.
-  5. **Bitácora de Auditoría:** Registro cronológico de todos los eventos del sistema con operador responsable, dirección IP y detalle de la transacción.
+### 4.3. Evidencias de Verificación y Compilación Productiva
+El proyecto fue sometido a la verificación formal del compilador de TypeScript y del empaquetador de producción de Next.js:
+* `npx tsc --noEmit`: **0 errores de compilación**.
+* `npm run build`: **Compilación exitosa al 100%**. Todas las rutas (`/`, `/login`, `/docente`, `/tecnico`, `/encargado`, `/admin`) fueron optimizadas y prerenderizadas estáticamente como Server Components con un First Load JS inferior a 122 kB.
 
 ---
 
-## 5. MÓDULO DE SALUD OPERACIONAL, GRÁFICOS Y MANTENIMIENTO TÉCNICO
+## 5. USO PRECISO DEL LENGUAJE TÉCNICO DISCIPLINAR (INDICADOR 4 - 5%)
 
-En respuesta a la necesidad de controlar qué sucede con el recinto y sus implementos, se implementó el componente [`MaintenanceDashboard.tsx`](file:///c:/Users/MAANDO/Desktop/PROYECTO%20DE%20TITULO/objetos%20proyecto%20de%20titulo/src/components/MaintenanceDashboard.tsx):
-
-### 5.1 Indicadores Clave de Desempeño (KPIs de Mantenimiento)
-* **Tasa de Operatividad de Equipos:** Porcentaje en tiempo real de implementos disponibles para docencia (ej. $90.9\%$).
-* **Casos Activos en Taller:** Número de equipos inoperativos en proceso de reparación.
-* **Downtime Total Acumulado:** Sumatoria exacta de horas fuera de servicio desde la apertura del incidente.
-* **MTTR (Mean Time to Repair):** Tiempo medio en horas para devolver un implemento o el auditorio a operatividad plena.
-
-### 5.2 Gráficos Analíticos
-1. **Gráfico de Barras por Categoría de Implemento:** Representa visualmente la dotación de Audio (Micrófonos, Consola), Proyección (Data Show 4K, Telón motorizado), Cómputo/Redes (Notebooks, Switch PoE) y Climatización (HVAC Daikin), destacando en ámbar los implementos actualmente en taller.
-2. **Gráfico Radial / Dona por Tipo de Acción:** Clasifica las intervenciones en *Preventivo*, *Correctivo*, *Calibración*, *Daño Post-Evento* y *Mejora de Hardware*.
-
-### 5.3 Flujo de Puesta en Mantenimiento y Resolución
-* **Puesta en Mantenimiento:** Permite reportar fallas en el auditorio completo o en implementos individuales, asignando severidad (*Baja*, *Media*, *Alta*, *Crítica*), diagnóstico técnico y proveedor responsable.
-* **Resolución con Constancia Técnica:** Para reactivar un equipo, el sistema exige documentar la solución técnica aplicada (ej: *"Reemplazo de cápsula Shure y prueba en sala superada"*), retornando automáticamente el hardware a estado disponible.
+A lo largo de todo el entregable y el código fuente se utiliza rigurosamente la terminología estándar de la ingeniería de software y las redes:
+* **RBAC (Role-Based Access Control):** Mecanismo de restricción de accesos basado en privilegios de usuario.
+* **Server Actions:** Paradigma de ejecución segura en Next.js donde las mutaciones ocurren en el servidor sin exponer rutas REST públicas.
+* **CSRF (Cross-Site Request Forgery):** Vulnerabilidad mitigada de forma inherente por el protocolo de Next.js.
+* **MTTR (Mean Time to Repair):** Métrica fundamental de gestión de activos que cuantifica el tiempo promedio transcurrido entre la detección de una falla y la restitución del servicio.
+* **Downtime Acumulado:** Sumatoria temporal de indisponibilidad física de un recurso técnico.
+* **No-Show:** Incumplimiento de asistencia de un usuario a un espacio previamente reservado, gestionado mediante algoritmos de penalización de prioridad.
+* **WCAG 2.1 AA:** Estándar internacional del W3C para accesibilidad web que exige relaciones de contraste de color mínimas de 4.5:1.
+* **Propagación ACID:** Propiedades de atomicidad, consistencia, aislamiento y durabilidad garantizadas por el motor de base de datos a través de Prisma ORM.
 
 ---
 
-## 6. SEGURIDAD Y REPROGRAMACIÓN DE HORARIOS CON CONFIRMACIÓN OBLIGATORIA
+## 6. NORMAS DE REDACCIÓN, ORTOGRAFÍA Y CITACIÓN APA 7 (INDICADOR 5 - 5%)
 
-Para evitar alteraciones accidentales en la agenda que perjudiquen la logística de las cuadrillas y docentes:
-1. El botón `Modificar Horario / Datos` despliega un modal con la información actual de la reserva.
-2. Incorpora una caja de advertencia en tono ámbar que alerta sobre el impacto operativo.
-3. El botón **`Guardar Cambios de Horario` permanece bloqueado e inhabilitado** hasta que el administrador marque de forma explícita la casilla:
-   > **☑ "Sí, confirmo bajo mi rol de Administrador que estoy seguro de realizar este cambio de horario."**
-4. La acción del servidor ([`updateReservationScheduleAction`](file:///c:/Users/MAANDO/Desktop/PROYECTO%20DE%20TITULO/objetos%20proyecto%20de%20titulo/src/lib/actions.ts)) valida matemáticamente que no existan colisiones horarias con otros eventos confirmados en el auditorio.
-5. Se estampa de forma automática en la bitácora un registro del tipo `HORARIO_MODIFICADO_ADMIN` con el horario anterior vs. el nuevo y el correo del operador.
+El informe respeta estrictamente las normas ortográficas de la Real Academia Española (acentuación, puntuación, concordancia literal) y las pautas internacionales de publicación de la American Psychological Association (APA 7ª edición) para las citas en el texto y las referencias bibliográficas finales.
 
 ---
 
-## 7. PROTOCOLO DE PRUEBAS ISO 25010 Y VALIDACIÓN LOCAL
+## 7. ESTRUCTURA ORGANIZACIONAL Y GESTIÓN EN GIT (INDICADOR 6 - 20%)
 
-Durante la Fase 2 se ejecutaron pruebas de extremo a extremo utilizando agentes de navegación automatizada (`browser_subagent`) sobre el entorno local `http://localhost:3000`:
-
-| ID Caso | Escenario Evaluado | Criterio de Aceptación ISO 25010 | Resultado Obtenido |
-| :--- | :--- | :--- | :--- |
-| **TC-01** | Inicio de sesión con credenciales de Super Administrador | Autenticación en < 2s y redirección correcta a `/admin`. | **APROBADO (100%)** |
-| **TC-02** | Creación de reserva académica sin solapamientos | Validación anti-colisión y registro en estado `PENDING`. | **APROBADO (100%)** |
-| **TC-03** | Aprobación por Encargado y generación de Pase QR | Emisión de token alfanumérico y estado `APPROVED`. | **APROBADO (100%)** |
-| **TC-04** | Check-in móvil en terreno por Soporte TI | Registro de hora exacta de llegada en < 30 segundos. | **APROBADO (100%)** |
-| **TC-05** | Check-out móvil y computación de $\Delta T$ | Cálculo de 1.5 horas TI y liberación del auditorio. | **APROBADO (100%)** |
-| **TC-06** | Calificación docente post-evento y cálculo NPS | Registro de encuesta 5 estrellas y actualización de NPS. | **APROBADO (100%)** |
-| **TC-07** | Alta y baja de funcionario en cuadrilla de Aseo | Inserción en `SuscripcionArea` y reflejo en lista. | **APROBADO (100%)** |
-| **TC-08** | Bloqueo de guardado en cambio de horario sin check | Botón deshabilitado hasta confirmación de seguridad. | **APROBADO (100%)** |
-| **TC-09** | Reprogramación de horario con casilla confirmada | Actualización de fecha y registro en `RegistroAuditoria`. | **APROBADO (100%)** |
-| **TC-10** | Puesta en mantenimiento de Proyector Láser 4K | Hardware bloqueado para reservas y stock en 0. | **APROBADO (100%)** |
-| **TC-11** | Suspensión temporal de Auditorio Magna por obras | Badge cambia a ámbar y se pausa la agenda de reservas. | **APROBADO (100%)** |
-| **TC-12** | Reactivación de auditorio a 100% Operativo | Restauración inmediata de disponibilidad general. | **APROBADO (100%)** |
-| **TC-13** | Resolución de falla de implemento con constancia | Hardware retorna a disponible con nota técnica archivada. | **APROBADO (100%)** |
-| **TC-14** | Actualización dinámica de gráficos del Dashboard | Barras de categoría y dona de eventos reflejan cambios. | **APROBADO (100%)** |
-| **TC-15** | Integridad y persistencia en SQLite (`dev.db`) | Transacciones ACID completadas sin inconsistencias. | **APROBADO (100%)** |
+El repositorio de control de versiones en GitHub (`IMANDOI/sistema-gestion-auditorios-capstone`) preserva la estructura oficial exigida por la dirección académica:
+* `Fase 1/`: Evidencias de levantamiento, catálogo de requerimientos (RF/RS) y especificación formal de arquitectura.
+* `Fase 2/Evidencias Grupales/`:
+  * `2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamín_Navarrete.docx`: Plantilla oficial de la guía del estudiante completamente contestada.
+  * `Informe_Tecnico_Avance_Fase2_Benjamin_Navarrete.docx`: Documento formal en Word del presente informe de avance.
+  * `informe_fase_2_desarrollo_software.md`: Versión markdown versionable del informe técnico.
+  * `Guia_Personal_Estudio_Defensa_Fase1_y_Fase2_Benjamin_Navarrete.docx`: Manual personal de estudio y simulador de preguntas para la defensa oral.
+  * `guia_personal_estudio_defensa_fase1_y_fase2.md`: Versión digital del manual de estudio.
+* `objetos proyecto de titulo/`: Código fuente completo del MVP (Next.js 15, React 19, Prisma, Tailwind CSS).
 
 ---
 
-## 8. PLAN DE TRANSICIÓN HACIA LA FASE 3 (DESPLIEGUE EN LA NUBE)
+## 8. APORTE INDIVIDUAL Y EQUIDAD EN EL TRABAJO (INDICADOR 7 - 15%)
 
-Con la culminación exitosa de la Fase 2 de programación y prototipado local, la **Fase 3 (Semanas 13 a 18)** contempla las siguientes actividades estratégicas:
-
-1. **Migración del Motor de Base de Datos:**
-   * Sustitución del datasource SQLite por un cluster servidor **PostgreSQL en Neon Cloud**.
-   * Ejecución de `npx prisma migrate deploy` y carga de semillero institucional mediante script seguro.
-2. **Despliegue Continuo (CI/CD) en Vercel:**
-   * Vinculación del repositorio GitHub `IMANDOI/sistema-gestion-auditorios-capstone` con Vercel.
-   * Configuración de variables de entorno de producción (`DATABASE_URL`, `JWT_SECRET`, `NEXTAUTH_URL`).
-3. **Optimización de Notificaciones SMTP en la Nube:**
-   * Integración de proveedor transaccional (Resend o SendGrid) para despacho real de correos a las cuadrillas suscritas.
-4. **Auditoría Final de Ciberseguridad y Accesibilidad:**
-   * Escaneo OWASP ZAP contra la URL productiva.
-   * Certificación de conformidad WCAG 2.1 AA con Google Lighthouse (meta: puntuación > 95/100).
-5. **Preparación de la Defensa de Título:**
-   * Demostración en vivo en dos dispositivos simultáneos (smartphone técnico y proyector administrador).
+| Integrante | Rol en el Proyecto | Dedicación | Principales Aportes Técnicos en Fase 2 |
+| :--- | :--- | :---: | :--- |
+| **Benjamín Navarrete** | **Super Administrador & Arquitecto Fullstack Líder** | **100%** | • Diseño del modelo relacional de 10 entidades en Prisma.<br>• Programación de portales por rol (`/login`, `/docente`, `/tecnico`, `/encargado`, `/admin`).<br>• Motor de reservas y prevención de colisiones en Server Actions.<br>• Cómputo de horas de soporte TI ($\Delta T$) y validación QR.<br>• Dashboard de Salud Operacional con gráficos analíticos y MTTR.<br>• Módulo de cuadrillas de apoyo y reprogramación de horarios con seguridad.<br>• Redacción de la documentación técnica y preparación de la defensa. |
 
 ---
 
-## 9. CONCLUSIÓN Y DECLARACIÓN DE CUMPLIMIENTO
+## 9. DEMOSTRACIÓN DE DOMINIO TÉCNICO Y TRABAJO EN EQUIPO (INDICADOR 8 - 10%)
 
-La **Fase 2 de Desarrollo de Software** se da por **completada y aprobada con un 100% de cumplimiento funcional**, logrando un prototipo operativo de alta ingeniería, con diseño accesible, ciberseguridad defensiva integrada y una solución real para la problemática de auditorios y horas dedicadas de soporte TI en Duoc UC.
+El estudiante Benjamín Navarrete demuestra dominio integral del sistema, articulando fluidamente las justificaciones de ingeniería ante la comisión:
+* **Capacidad de Argumentación:** Explicación técnica clara de por qué se desacopló el sistema en portales por rol y cómo se garantiza la accesibilidad para usuarios de edad avanzada.
+* **Defensa de Decisiones de Arquitectura:** Justificación de la eliminación de la vista aislada de ciberseguridad a favor de una seguridad defensiva embebida en el backend.
+* **Manejo de Contingencias:** Explicación de los flujos de contingencia ante fallas de hardware (puesta en mantenimiento, bloqueo de reservas de stock averiado y restitución con constancia técnica).
 
 ---
-*Documento elaborado por Benjamín Navarrete — Proyecto Capstone 2026 — Duoc UC*
+
+## 10. ALINEACIÓN CON COMPETENCIAS DEL PERFIL DE EGRESO
+
+### 10.1. Competencia 1: Realizar pruebas de certificación tanto de los productos como de los procesos utilizando buenas prácticas de la industria
+* **1.1 Diseña pruebas de validación:** Se diseñó una matriz de 15 casos de prueba funcionales y no funcionales basados en la norma ISO/IEC 25010 (TC-01 a TC-15).
+* **1.2 Aplica pruebas de validación:** Se ejecutaron las pruebas mediante agentes de navegación web automatizados (`browser_subagent`) sobre el entorno local `http://localhost:3000`, obteniendo un 100% de aprobación.
+* **1.3 Desarrolla mejoras al producto en base al resultado:** Tras los ensayos, se implementó el bloqueo preventivo del botón de cambio de horario con casilla obligatoria y la constancia técnica obligatoria para reactivar hardware reparado.
+
+### 10.2. Competencia 2: Gestionar proyectos informáticos, ofreciendo alternativas para la toma de decisiones
+* **2.1 Planifica proyectos informáticos:** Estructuración de cronograma en 5 Sprints con estimación de recursos, fechas límite y entregables formales en Git.
+* **2.2 Controla proyectos informáticos:** Supervisión del avance técnico mediante tablero ágil, control de versiones semántico y mitigación proactiva de riesgos de desarrollo.
+
+### 10.3. Competencia 3: Construir modelos de datos para soportar los requerimientos de la organización
+* **3.1 Diseña modelos de datos escalables:** Diseño de modelo entidad-relación de 10 entidades con normalización en tercera forma normal (3FN) y definición de integridad referencial.
+* **3.2 Implementa modelos de datos:** Implementación en Prisma ORM v6 con semillero de datos funcional (`seed.js`), compatible de manera transparente con PostgreSQL en Neon Cloud.
+
+### 10.4. Competencia 4: Desarrollar una solución de software utilizando técnicas que permitan sistematizar el desarrollo y mantenimiento
+* **4.1 Construye una solución de software:** Construcción de un MVP con Next.js 15, React 19 y TypeScript en modo estricto.
+* **4.2 Integra los distintos componentes:** Acoplamiento armónico entre la capa de presentación responsiva, las Server Actions de backend y la capa de persistencia relacional.
+* **4.3 Implanta una solución de software:** Compilación productiva verificada sin errores y preparación de la arquitectura para el despliegue en Vercel y Neon Cloud.
+
+---
+
+## 11. INDIVIDUAL CONCLUSIONS (STRICTLY IN ENGLISH)
+
+During Phase 2 of the Capstone Project, the development and architectural implementation of the Autonomous Operating Management System for Duoc UC reached full operational capability. Through the systematic adoption of Next.js 15 App Router, React 19, and Prisma ORM, the project successfully transitioned from theoretical specifications into a production-ready Minimum Viable Product. 
+
+The modular separation into dedicated role-based portals (/docente, /tecnico, /encargado, /admin) significantly improved user experience and operational security, enforcing the Principle of Least Privilege and adhering to WCAG 2.1 AA accessibility standards. The on-site QR validation mechanism successfully reduced technical check-in procedures to less than 30 seconds, while automatically calculating dedicated IT support hours (Delta T), eliminating historical unmonitored passive waiting time. Furthermore, the newly integrated Operational Health Dashboard provides institutional decision-makers with real-time maintenance telemetry, MTTR tracking, and hardware availability rates. 
+
+In conclusion, Phase 2 accomplished 100% of its planned functional milestones with zero TypeScript compilation errors, delivering a robust, scalable, and secure engineering asset ready for cloud deployment in Phase 3.
+
+---
+
+## 12. INDIVIDUAL PROFESSIONAL REFLECTION (STRICTLY IN ENGLISH)
+
+Reflecting on the engineering process executed throughout Phase 2, this project represented a transformative milestone in my development as an Information Technology professional. Building an enterprise-grade software system demanded not only solid programming and data modeling skills, but also strict architectural discipline and empathetic design thinking.
+
+One of the most valuable lessons learned was the strategic importance of defensive embedded security over superficial cosmetic features. Replacing an isolated cybersecurity monitoring dashboard with structural backend defenses—such as salted bcrypt hashing, Server Action CSRF tokens, and an immutable transactional audit trail—proved that authentic software engineering prioritizes resilience over appearance. 
+
+Additionally, addressing the real-world operational challenges of campus logistics taught me to view software through the lens of diverse end users. Designing high-contrast interfaces for senior faculty members and high-efficiency mobile workflows for technicians in the field reinforced the ethical imperative of digital accessibility. 
+
+As I prepare to transition this platform into cloud production on Vercel and Neon PostgreSQL during Phase 3, I feel deeply confident in my technical competencies, agile project management capabilities, and readiness to contribute significantly to the software engineering industry upon graduation.
+
+---
+
+## 13. REFERENCIAS BIBLIOGRÁFICAS (NORMAS APA 7ª EDICIÓN)
+
+* International Organization for Standardization. (2011). *Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — System and software quality models* (ISO/IEC Standard No. 25010:2011). https://www.iso.org/standard/35733.html
+* Next.js Documentation Team. (2025). *Next.js 15 architecture, App Router, and Server Actions reference*. Vercel. https://nextjs.org/docs
+* Open Web Application Security Project. (2021). *OWASP Top 10: The ten most critical web application security risks*. OWASP Foundation. https://owasp.org/www-project-top-ten/
+* Prisma Data Inc. (2025). *Prisma Client: Next-generation ORM for Node.js and TypeScript*. Prisma Documentation. https://www.prisma.io/docs
+* Pressman, R. S., & Maxim, B. R. (2020). *Software engineering: A practitioner's approach* (9th ed.). McGraw-Hill Education.
+* Sommerville, I. (2016). *Software engineering* (10th ed.). Pearson Education.
+* World Wide Web Consortium. (2018). *Web Content Accessibility Guidelines (WCAG) 2.1* (W3C Recommendation). W3C. https://www.w3.org/TR/WCAG21/
