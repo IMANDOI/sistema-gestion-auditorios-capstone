@@ -896,29 +896,33 @@ export async function updateSuscripcionAction(
     department: string;
     isActive: boolean;
   }
-) {
-  const updated = await prisma.suscripcionArea.update({
-    where: { id },
-    data: {
-      name: data.name.trim(),
-      email: data.email.trim().toLowerCase(),
-      department: data.department,
-      isActive: data.isActive,
-    },
-  });
+): Promise<{ success: true; item: any } | { success: false; error: string }> {
+  try {
+    const updated = await prisma.suscripcionArea.update({
+      where: { id },
+      data: {
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        department: data.department,
+        isActive: data.isActive,
+      },
+    });
 
-  await prisma.registroAuditoria.create({
-    data: {
-      action: "FUNCIONARIO_MODIFICADO",
-      entity: "SuscripcionArea",
-      entityId: id,
-      ipAddress: "127.0.0.1",
-      details: `Datos actualizados: ${data.name} (${data.department}) - Activo: ${data.isActive}`,
-    },
-  });
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "FUNCIONARIO_MODIFICADO",
+        entity: "SuscripcionArea",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Datos actualizados: ${data.name} (${data.department}) - Activo: ${data.isActive}`,
+      },
+    });
 
-  revalidatePath("/");
-  return { success: true, item: updated };
+    revalidatePath("/");
+    return { success: true, item: updated };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar funcionario." };
+  }
 }
 
 export async function deleteSuscripcionAction(id: string) {
