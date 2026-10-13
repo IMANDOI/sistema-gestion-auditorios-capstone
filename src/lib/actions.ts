@@ -1359,3 +1359,33 @@ export async function runRPAJobAction(triggeredBy?: string): Promise<RPAResult> 
     };
   }
 }
+
+// ---------------------------------------------------------------------------
+// PLAN DE RESPUESTA A INCIDENTES (IRP) - DECLARACIÓN Y TRAZABILIDAD NIST SP 800-61
+// ---------------------------------------------------------------------------
+
+export async function declareIRPIncidentAction(data: {
+  title: string;
+  severity: "SEV-1" | "SEV-2" | "SEV-3" | "SEV-4";
+  description: string;
+  mitigationActions: string;
+  reportedBy: string;
+}): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    await prisma.registroAuditoria.create({
+      data: {
+        action: `IRP_${data.severity}_DECLARADO`,
+        entity: "Auditorio",
+        entityId: "incident-irp-protocol",
+        ipAddress: "127.0.0.1",
+        details: `[IRP ${data.severity}] ${data.title} - ${data.description}. Medidas de Contención: ${data.mitigationActions} (Declarado por: ${data.reportedBy})`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al declarar incidente IRP." };
+  }
+}
