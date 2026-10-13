@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { PortalHeader } from "@/components/PortalHeader";
 import { getDashboardData, processCheckInAction, processCheckOutAction } from "@/lib/actions";
 import { ReservaItem } from "@/lib/types";
+import { CameraQRScanner } from "@/components/CameraQRScanner";
 import { 
   QrCode, 
   CheckCircle2, 
@@ -188,23 +189,38 @@ export default function TecnicoMobilePage() {
         {/* TAB 1: CHECK-IN */}
         {activeTab === "CHECK_IN" && (
           <div className="space-y-4">
-            {/* Visual camera scan representation */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm text-center space-y-3">
-              <div className="w-32 h-32 mx-auto rounded-2xl border-4 border-emerald-600 bg-emerald-50 flex flex-col items-center justify-center p-2">
-                <Smartphone className="w-10 h-10 text-emerald-700" />
-                <span className="text-[10px] font-bold text-emerald-800 mt-1">CÁMARA MÓVIL</span>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">
-                  Escáner de Código QR en Terreno
-                </h3>
-                <p className="text-xs text-slate-600 max-w-xs mx-auto">
-                  Alinee el pase QR presentado por el expositor. La validación toma menos de 30 segundos.
-                </p>
+            {/* Real Camera Scanner */}
+            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Escáner Óptico de Código QR
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Apunta la cámara al código QR para validar el Check-in en &lt; 30 segundos
+                    </p>
+                  </div>
+                </div>
               </div>
 
+              {/* Camera Feed with real-time decoding */}
+              <CameraQRScanner
+                onScan={(scannedToken) => {
+                  setTokenInput(scannedToken);
+                  handleExecuteCheckIn(scannedToken);
+                }}
+                isActive={activeTab === "CHECK_IN"}
+              />
+
               {/* Manual input fallback */}
-              <div className="pt-2">
+              <div className="pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-semibold text-slate-600 block mb-1">
+                  O ingresa el token manualmente:
+                </span>
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
