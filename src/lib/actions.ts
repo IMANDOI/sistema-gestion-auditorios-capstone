@@ -657,6 +657,7 @@ export async function toggleEquipmentStatusAction(
 
   revalidatePath("/");
   revalidatePath("/admin");
+  revalidatePath("/tecnico");
   return { success: true };
 }
 
@@ -1387,5 +1388,109 @@ export async function declareIRPIncidentAction(data: {
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || "Error al declarar incidente IRP." };
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// GESTION Y VERIFICACION DE EQUIPAMIENTO POR SOPORTE TI (EN TERRENO)
+// ---------------------------------------------------------------------------
+
+export async function toggleReservaEquipmentDeliveryAction(
+  reservaEquipamientoId: string,
+  field: "delivered" | "returned",
+  value: boolean,
+  tecnicoId?: string,
+  notes?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const item = await prisma.reservaEquipamiento.findUnique({
+      where: { id: reservaEquipamientoId },
+      include: { equipamiento: true, reserva: true },
+    });
+    if (!item) return { success: false, error: "Registro de equipamiento no encontrado." };
+
+    await prisma.reservaEquipamiento.update({
+      where: { id: reservaEquipamientoId },
+      data: {
+        [field]: value,
+        notes: notes !== undefined ? notes : item.notes,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: field === "delivered" ? "EQUIPAMIENTO_VERIFICADO_TI" : "EQUIPAMIENTO_DEVUELTO_TI",
+        entity: "Equipamiento",
+        entityId: item.equipamientoId,
+        userId: tecnicoId || null,
+        ipAddress: "127.0.0.1",
+        details: `[Soporte TI] ${item.equipamiento.name} (${item.quantity} un.) marcado como ${
+          value ? (field === "delivered" ? "VERIFICADO Y ENTREGADO CONFORME EN SALA" : "DEVUELTO Y PROBADO CONFORME") : "PENDIENTE"
+        } para el evento "${item.reserva.title}".`,
+      },
+    });
+
+    revalidatePath("/tecnico");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar estado del equipo." };
+  }
+}
+
+export async function reportTechnicalIncidentAction(data: {
+  equipamientoId: string;
+  title: string;
+  description: string;
+  severity: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  reportedBy: string;
+  setInMaintenance?: boolean;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const eq = await prisma.equipamiento.findUnique({ where: { id: data.equipamientoId } });
+    if (!eq) return { success: false, error: "Equipo no encontrado." };
+
+    if (data.setInMaintenance) {
+      await prisma.equipamiento.update({
+        where: { id: data.equipamientoId },
+        data: {
+          status: "MAINTENANCE",
+          availableQty: 0,
+        },
+      });
+    }
+
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId: data.equipamientoId,
+        title: data.title.trim(),
+        description: data.description.trim(),
+        severity: data.severity,
+        status: "EN_MANTENCION",
+        reportedBy: data.reportedBy,
+        technicianAssigned: "Soporte TI en Terreno",
+        startDate: new Date(),
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "INCIDENCIA_TECNICA_REPORTADA",
+        entity: "Equipamiento",
+        entityId: data.equipamientoId,
+        ipAddress: "127.0.0.1",
+        details: `[Alerta TI - Severidad ${data.severity}] ${data.title}: ${data.description}. (Equipo: ${eq.name}). Reportado por: ${data.reportedBy}.`,
+      },
+    });
+
+    revalidatePath("/tecnico");
+    revalidatePath("/admin");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al registrar incidencia tecnica." };
   }
 }
