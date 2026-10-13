@@ -5,6 +5,7 @@ import { PortalHeader } from "@/components/PortalHeader";
 import { getDashboardData } from "@/lib/actions";
 import { QuickReservationModal } from "@/components/QuickReservationModal";
 import { FeedbackModal } from "@/components/FeedbackModal";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { ReservaItem, EquipamientoItem } from "@/lib/types";
 import { 
   CalendarPlus, 
@@ -249,14 +250,10 @@ export default function DocentePage() {
             <h3 className="font-extrabold text-slate-900 text-lg">Pase de Acceso al Auditorio</h3>
             <p className="text-xs text-slate-600 font-medium">{qrModal.title}</p>
 
-            <div className="p-4 bg-white border-2 border-slate-900 rounded-2xl w-52 h-52 mx-auto flex flex-col items-center justify-center shadow-inner">
-              <QrCode className="w-36 h-36 text-slate-950" />
-              <span className="text-[10px] font-mono font-bold text-slate-700 mt-1">CAPSTONE PASS</span>
+            {/* Genuine Scannable QR Matrix */}
+            <div className="py-2 flex justify-center">
+              <QRCodeDisplay value={qrModal.token} size={200} />
             </div>
-
-            <p className="text-xs font-mono font-bold text-slate-800 bg-slate-100 p-2.5 rounded-xl border border-slate-200 break-all">
-              {qrModal.token}
-            </p>
 
             <p className="text-xs text-slate-600 leading-relaxed">
               Muestre esta pantalla al técnico de soporte al llegar al auditorio para validar su ingreso en menos de 30 segundos.
