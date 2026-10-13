@@ -27,6 +27,7 @@ import {
   MaintenanceMetrics
 } from "@/lib/types";
 import MaintenanceDashboard from "@/components/MaintenanceDashboard";
+import { QRScannerModal } from "@/components/QRScannerModal";
 import { 
   BarChart3, 
   Clock, 
@@ -41,6 +42,7 @@ import {
   ShieldAlert, 
   Mail, 
   Users,
+  QrCode,
   Search,
   UserPlus,
   Edit2,
@@ -97,6 +99,7 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
 
   // Cuadrillas CRUD state
   const [filterDept, setFilterDept] = useState<string>("ALL");
@@ -528,7 +531,7 @@ export default function AdminPage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
         {/* Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Dashboard de Gestión Operativa y Analítica
@@ -536,6 +539,16 @@ export default function AdminPage() {
             <p className="text-xs sm:text-sm text-slate-600">
               Supervisión de horas de soporte TI, ocupación del recinto y control de recursos.
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsQRScannerOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 touch-target"
+              title="Abrir Escáner Óptico de Cámara para Check-in"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>📷 Escáner Check-in QR</span>
+            </button>
           </div>
         </div>
 
@@ -2488,6 +2501,19 @@ export default function AdminPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Real Camera QR Scanner Modal */}
+      {isQRScannerOpen && (
+        <QRScannerModal
+          isOpen={isQRScannerOpen}
+          onClose={() => setIsQRScannerOpen(false)}
+          reservas={data.reservas}
+          tecnicoId={adminUser.id}
+          onSuccess={async () => {
+            await loadData();
+          }}
+        />
       )}
     </div>
   );
