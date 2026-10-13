@@ -42,3 +42,23 @@ body {
   min-height: 48px;
   min-width: 48px;
 }
+
+@keyframes laser-sweep {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 92%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+.animate-laser {
+  animation: laser-sweep 2.2s ease-in-out infinite;
+}
+
