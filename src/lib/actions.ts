@@ -2,6 +2,7 @@
 
 import { prisma } from "./prisma";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 export async function getDashboardData() {
   const [
@@ -38,8 +39,11 @@ export async function getDashboardData() {
         email: true,
         role: true,
         department: true,
+        phone: true,
         priorityScore: true,
+        createdAt: true,
       },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.registroAuditoria.findMany({
       include: { user: { select: { name: true, role: true } } },
@@ -945,4 +949,213 @@ export async function deleteSuscripcionAction(id: string) {
   revalidatePath("/");
   return { success: true };
 }
+
+// ---------------------------------------------------------------------------
+// GESTOR DE CUENTAS DE USUARIO (RBAC ACCOUNT MANAGEMENT)
+// ---------------------------------------------------------------------------
+
+export async function createUserAction(data: {
+  name: string;
+  email: string;
+  password?: string;
+  role: string;
+  department?: string;
+  phone?: string;
+  priorityScore?: number;
+}): Promise<{ success: true; user: any } | { success: false; error: string }> {
+  try {
+    const emailNorm = data.email.trim().toLowerCase();
+    const existing = await prisma.user.findUnique({ where: { email: emailNorm } });
+    if (existing) {
+      return { success: false, error: "Ya existe un usuario con este correo electrónico." };
+    }
+
+    const rawPassword = data.password && data.password.trim().length >= 6 ? data.password.trim() : "Capstone2026!";
+    const passwordHash = await bcrypt.hash(rawPassword, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: data.name.trim(),
+        email: emailNorm,
+        passwordHash,
+        role: data.role || "PROFESSOR",
+        department: data.department?.trim() || null,
+        phone: data.phone?.trim() || null,
+        priorityScore: data.priorityScore ?? 100,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        phone: true,
+        priorityScore: true,
+        createdAt: true,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_CREADO",
+        entity: "User",
+        entityId: newUser.id,
+        ipAddress: "127.0.0.1",
+        details: `Nueva cuenta creada: ${newUser.name} (${newUser.email}) - Rol: ${newUser.role}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true, user: newUser };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al crear cuenta de usuario." };
+  }
+}
+
+export async function updateUserAction(
+  id: string,
+  data: {
+    name: string;
+    email: string;
+    role: string;
+    department?: string;
+    phone?: string;
+    priorityScore?: number;
+  }
+): Promise<{ success: true; user: any } | { success: false; error: string }> {
+  try {
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    const emailNorm = data.email.trim().toLowerCase();
+    if (emailNorm !== existing.email) {
+      const emailTaken = await prisma.user.findUnique({ where: { email: emailNorm } });
+      if (emailTaken) {
+        return { success: false, error: "El nuevo correo ya se encuentra en uso por otra cuenta." };
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        name: data.name.trim(),
+        email: emailNorm,
+        role: data.role,
+        department: data.department?.trim() || null,
+        phone: data.phone?.trim() || null,
+        priorityScore: data.priorityScore ?? existing.priorityScore,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        phone: true,
+        priorityScore: true,
+        createdAt: true,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_MODIFICADO",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Cuenta actualizada: ${updated.name} - Rol: ${updated.role} - Depto: ${updated.department || "N/A"}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true, user: updated };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar cuenta de usuario." };
+  }
+}
+
+export async function resetUserPasswordAction(
+  id: string,
+  newPassword: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    if (!newPassword || newPassword.trim().length < 6) {
+      return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "CLAVE_RESTABLECIDA",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Contraseña restablecida para el usuario: ${user.name} (${user.email})`,
+      },
+    });
+
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al restablecer contraseña." };
+  }
+}
+
+export async function deleteUserAction(
+  id: string,
+  callerEmail?: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    // Protection: NEVER delete Super Admin
+    if (user.email === "benjamin54144752123@gmail.com" || user.role === "OWNER") {
+      return { success: false, error: "Protección de seguridad: No está permitido eliminar la cuenta del Super Administrador." };
+    }
+
+    const reservasCount = await prisma.reserva.count({ where: { userId: id } });
+    if (reservasCount > 0) {
+      return { 
+        success: false, 
+        error: `No se puede eliminar porque tiene ${reservasCount} reserva(s) asociadas. Puedes modificar su rol en lugar de borrar la cuenta.` 
+      };
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_ELIMINADO",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Cuenta eliminada: ${user.name} (${user.email}) por ${callerEmail || "Admin"}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al eliminar cuenta." };
+  }
+}
+
 
