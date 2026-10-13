@@ -334,12 +334,20 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+        let w = img.width;
+        let h = img.height;
+        if (w > 1000) {
+          h = Math.round((h * 1000) / w);
+          w = 1000;
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, w, h);
 
         try {
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, w, h);
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "attemptBoth",
           });
