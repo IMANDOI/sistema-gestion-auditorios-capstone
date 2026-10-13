@@ -1159,3 +1159,203 @@ export async function deleteUserAction(
 }
 
 
+
+// ---------------------------------------------------------------------------
+// HISTORIAL DE AUDITORÍA ESPECÍFICO POR CUENTA (LOGS DE USUARIO)
+// ---------------------------------------------------------------------------
+
+export async function getUserAuditLogsAction(userId: string, userEmail: string) {
+  try {
+    const logs = await prisma.registroAuditoria.findMany({
+      where: {
+        OR: [
+          { userId },
+          { entityId: userId },
+          { details: { contains: userEmail } },
+        ],
+      },
+      include: {
+        user: { select: { name: true, email: true, role: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+    });
+
+    return { success: true, logs };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al obtener historial de la cuenta.", logs: [] };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MOTOR RPA (ROBOTIC PROCESS AUTOMATION / AGENTE ROBÓTICO DE CONTINGENCIAS)
+// ---------------------------------------------------------------------------
+
+export interface RPAResult {
+  success: boolean;
+  timestamp: string;
+  noShowsCount: number;
+  autoCheckoutsCount: number;
+  predictiveAlertsCount: number;
+  details: string[];
+}
+
+export async function runRPAJobAction(triggeredBy?: string): Promise<RPAResult> {
+  const now = new Date();
+  const thirtyMinsAgo = new Date(now.getTime() - 30 * 60 * 1000);
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const details: string[] = [];
+
+  let noShowsCount = 0;
+  let autoCheckoutsCount = 0;
+  let predictiveAlertsCount = 0;
+
+  try {
+    // 1. RPA SUB-PROCESO 1: DETECCIÓN Y PENALIZACIÓN AUTOMÁTICA DE AUSENCIAS (NO-SHOW)
+    const overdueApproved = await prisma.reserva.findMany({
+      where: {
+        status: "APPROVED",
+        startTime: { lt: thirtyMinsAgo },
+      },
+      include: {
+        user: true,
+        auditorio: true,
+      },
+    });
+
+    for (const res of overdueApproved) {
+      await prisma.reserva.update({
+        where: { id: res.id },
+        data: {
+          status: "NO_SHOW",
+          notes: (res.notes || "") + ` [RPA BOT: Marcado como No-Show a las ${now.toLocaleTimeString("es-CL")} por inasistencia superior a 30 minutos]`,
+        },
+      });
+
+      // Penalización automática de priorityScore al docente
+      const newScore = Math.max(10, res.user.priorityScore - 15);
+      await prisma.user.update({
+        where: { id: res.userId },
+        data: { priorityScore: newScore },
+      });
+
+      // Liberar equipamiento asignado
+      await prisma.reservaEquipamiento.updateMany({
+        where: { reservaId: res.id },
+        data: { returned: true },
+      });
+
+      // Estampar en bitácora forense
+      await prisma.registroAuditoria.create({
+        data: {
+          action: "RPA_AUTO_CANCEL_NOSHOW",
+          entity: "Reserva",
+          entityId: res.id,
+          userId: res.userId,
+          ipAddress: "127.0.0.1 (RPA-DAEMON)",
+          details: `RPA Bot canceló reserva '${res.title}' en ${res.auditorio.name}. Docente penalizado a ${newScore} pts. Sala y hardware liberados.`,
+        },
+      });
+
+      noShowsCount++;
+      details.push(`No-Show detectado: '${res.title}' (${res.user.name}) - Sala liberada y score ajustado.`);
+    }
+
+    // 2. RPA SUB-PROCESO 2: CIERRE PREVENTIVO DE EVENTOS VENCIDOS (AUTO-CHECKOUT)
+    const overdueCheckedIn = await prisma.reserva.findMany({
+      where: {
+        status: "CHECKED_IN",
+        endTime: { lt: oneHourAgo },
+      },
+      include: {
+        auditorio: true,
+      },
+    });
+
+    for (const res of overdueCheckedIn) {
+      const checkoutTime = now;
+      await prisma.reserva.update({
+        where: { id: res.id },
+        data: {
+          status: "CHECKED_OUT",
+          checkoutTime,
+          notes: (res.notes || "") + ` [RPA BOT: Check-out preventivo automático tras vencer el horario del evento]`,
+        },
+      });
+
+      await prisma.reservaEquipamiento.updateMany({
+        where: { reservaId: res.id },
+        data: { returned: true },
+      });
+
+      await prisma.registroAuditoria.create({
+        data: {
+          action: "RPA_AUTO_CHECKOUT",
+          entity: "Reserva",
+          entityId: res.id,
+          ipAddress: "127.0.0.1 (RPA-DAEMON)",
+          details: `RPA Bot completó cierre preventivo del evento '${res.title}' en ${res.auditorio.name}. Stock de implementos retornado.`,
+        },
+      });
+
+      autoCheckoutsCount++;
+      details.push(`Cierre preventivo completado para '${res.title}' - Equipamiento devuelto a disponible.`);
+    }
+
+    // 3. RPA SUB-PROCESO 3: TELEMETRÍA PREDICTIVA DE IMPLEMENTOS CON FALLAS RECURRENTES
+    const equiposConFallas = await prisma.registroMantenimiento.groupBy({
+      by: ["equipamientoId"],
+      _count: { id: true },
+      where: {
+        equipamientoId: { not: null },
+      },
+    });
+
+    for (const eqGroup of equiposConFallas) {
+      if (eqGroup.equipamientoId && eqGroup._count.id >= 2) {
+        const eq = await prisma.equipamiento.findUnique({ where: { id: eqGroup.equipamientoId } });
+        if (eq) {
+          predictiveAlertsCount++;
+          details.push(`Telemetría predictiva: ${eq.name} acumula ${eqGroup._count.id} intervenciones técnicas. Sugerida mantención profunda.`);
+        }
+      }
+    }
+
+    // Estampar la ejecución del ciclo en la bitácora
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "RPA_CICLO_EJECUTADO",
+        entity: "Auditorio",
+        entityId: "system-rpa-core",
+        ipAddress: "127.0.0.1 (RPA-BOT)",
+        details: `Ciclo de RPA ejecutado por ${triggeredBy || "Daemon Autónomo"}. Resultados: ${noShowsCount} No-Shows mitigados, ${autoCheckoutsCount} Check-outs automáticos, ${predictiveAlertsCount} alertas predictivas.`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+
+    if (details.length === 0) {
+      details.push("Todos los recintos, eventos y cuadrillas operan en perfecta sincronía. Sin anomalías detectadas.");
+    }
+
+    return {
+      success: true,
+      timestamp: now.toLocaleString("es-CL"),
+      noShowsCount,
+      autoCheckoutsCount,
+      predictiveAlertsCount,
+      details,
+    };
+  } catch (err: any) {
+    console.error("Error en ciclo de RPA:", err);
+    return {
+      success: false,
+      timestamp: now.toLocaleString("es-CL"),
+      noShowsCount: 0,
+      autoCheckoutsCount: 0,
+      predictiveAlertsCount: 0,
+      details: [`Fallo en RPA: ${err?.message || "Error desconocido"}`],
+    };
+  }
+}
