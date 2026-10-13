@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, QrCode, CheckCircle2, Clock, Smartphone, AlertCircle, ArrowRight } from "lucide-react";
 import { ReservaItem } from "@/lib/types";
 import { processCheckInAction, processCheckOutAction } from "@/lib/actions";
+import { CameraQRScanner } from "./CameraQRScanner";
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -46,6 +47,29 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 
     try {
       const res = await processCheckInAction(tokenInput.trim(), tecnicoId);
+      if (res.success) {
+        setFeedback({
+          type: "success",
+          message: `¡Check-in validado exitosamente en < 30s! Evento "${res.reservaTitle}" iniciado. Cronómetro de soporte en marcha.`,
+        });
+        setTokenInput("");
+        onSuccess();
+      } else {
+        setFeedback({ type: "error", message: res.error || "Código QR no válido." });
+      }
+    } catch (err: any) {
+      setFeedback({ type: "error", message: err.message || "Error al validar Check-in." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDirectScan = async (scannedToken: string) => {
+    setTokenInput(scannedToken);
+    setIsLoading(true);
+    setFeedback(null);
+    try {
+      const res = await processCheckInAction(scannedToken.trim(), tecnicoId);
       if (res.success) {
         setFeedback({
           type: "success",
@@ -155,19 +179,11 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
         {/* Tab Content: CHECK-IN */}
         {activeTab === "CHECK_IN" && (
           <div className="mt-5 space-y-4">
-            {/* Visual Viewfinder Frame Simulator */}
-            <div className="relative w-full h-44 rounded-2xl border-2 border-dashed border-emerald-500/40 bg-slate-950/60 flex flex-col items-center justify-center overflow-hidden">
-              <div className="w-32 h-32 border-2 border-emerald-400 rounded-xl relative flex items-center justify-center">
-                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-emerald-300" />
-                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-emerald-300" />
-                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-emerald-300" />
-                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-emerald-300" />
-                <Smartphone className="w-8 h-8 text-emerald-400/60 animate-pulse" />
-              </div>
-              <p className="mt-2 text-[11px] text-slate-400">
-                Alinee el código QR generado en el comprobante del expositor
-              </p>
-            </div>
+            {/* Real Camera Scanner Feed */}
+            <CameraQRScanner
+              onScan={handleDirectScan}
+              isActive={activeTab === "CHECK_IN"}
+            />
 
             <form onSubmit={handleCheckIn} className="space-y-3">
               <div>
