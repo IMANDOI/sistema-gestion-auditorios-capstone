@@ -8,7 +8,11 @@ import {
   createSuscripcionAction,
   updateSuscripcionAction,
   deleteSuscripcionAction,
-  updateReservationScheduleAction
+  updateReservationScheduleAction,
+  createUserAction,
+  updateUserAction,
+  resetUserPasswordAction,
+  deleteUserAction
 } from "@/lib/actions";
 import { 
   ReservaItem, 
@@ -42,7 +46,11 @@ import {
   AlertCircle,
   CalendarClock,
   ShieldCheck,
-  Activity
+  Activity,
+  Key,
+  Lock,
+  UserCheck,
+  Shield
 } from "lucide-react";
 
 interface SuscripcionItem {
@@ -73,7 +81,7 @@ export default function AdminPage() {
     maintenanceMetrics: MaintenanceMetrics;
   } | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"RESERVAS" | "MANTENIMIENTO" | "INVENTARIO" | "CUADRILLAS" | "AUDITORIA">("RESERVAS");
+  const [activeTab, setActiveTab] = useState<"RESERVAS" | "MANTENIMIENTO" | "INVENTARIO" | "CUADRILLAS" | "USUARIOS" | "AUDITORIA">("RESERVAS");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -99,6 +107,24 @@ export default function AdminPage() {
   const [confirmSecurity, setConfirmSecurity] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [scheduleSuccess, setScheduleSuccess] = useState<string | null>(null);
+
+  // User Accounts Management state
+  const [searchUserQuery, setSearchUserQuery] = useState("");
+  const [filterUserRole, setFilterUserRole] = useState("ALL");
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<any | null>(null);
+  const [newPasswordVal, setNewPasswordVal] = useState("Capstone2026!");
+  const [userFormName, setUserFormName] = useState("");
+  const [userFormEmail, setUserFormEmail] = useState("");
+  const [userFormPassword, setUserFormPassword] = useState("Capstone2026!");
+  const [userFormRole, setUserFormRole] = useState("PROFESSOR");
+  const [userFormDept, setUserFormDept] = useState("Escuela de Informática y Telecomunicaciones");
+  const [userFormPhone, setUserFormPhone] = useState("+56 9 ");
+  const [userFormScore, setUserFormScore] = useState(100);
+  const [userActionError, setUserActionError] = useState<string | null>(null);
+  const [userActionSuccess, setUserActionSuccess] = useState<string | null>(null);
+  const [isSubmittingUser, setIsSubmittingUser] = useState(false);
 
   const loadData = async () => {
     try {
@@ -189,6 +215,104 @@ export default function AdminPage() {
     await loadData();
   };
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserActionError(null);
+    setUserActionSuccess(null);
+    setIsSubmittingUser(true);
+    const res = await createUserAction({
+      name: userFormName,
+      email: userFormEmail,
+      password: userFormPassword,
+      role: userFormRole,
+      department: userFormDept,
+      phone: userFormPhone,
+      priorityScore: Number(userFormScore),
+    });
+    setIsSubmittingUser(false);
+    if (res.success) {
+      setIsAddUserModalOpen(false);
+      setUserFormName("");
+      setUserFormEmail("");
+      setUserFormPassword("Capstone2026!");
+      setUserFormRole("PROFESSOR");
+      setUserFormDept("Escuela de Informática y Telecomunicaciones");
+      setUserFormPhone("+56 9 ");
+      setUserFormScore(100);
+      await loadData();
+    } else {
+      setUserActionError(res.error);
+    }
+  };
+
+  const openEditUserModal = (u: any) => {
+    setUserActionError(null);
+    setUserActionSuccess(null);
+    setEditingUser(u);
+    setUserFormName(u.name);
+    setUserFormEmail(u.email);
+    setUserFormRole(u.role);
+    setUserFormDept(u.department || "");
+    setUserFormPhone(u.phone || "");
+    setUserFormScore(u.priorityScore ?? 100);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setUserActionError(null);
+    setUserActionSuccess(null);
+    setIsSubmittingUser(true);
+    const res = await updateUserAction(editingUser.id, {
+      name: userFormName,
+      email: userFormEmail,
+      role: userFormRole,
+      department: userFormDept,
+      phone: userFormPhone,
+      priorityScore: Number(userFormScore),
+    });
+    setIsSubmittingUser(false);
+    if (res.success) {
+      setEditingUser(null);
+      await loadData();
+    } else {
+      setUserActionError(res.error);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetPasswordUser) return;
+    setUserActionError(null);
+    setIsSubmittingUser(true);
+    const res = await resetUserPasswordAction(resetPasswordUser.id, newPasswordVal);
+    setIsSubmittingUser(false);
+    if (res.success) {
+      alert(`Contraseña actualizada con éxito para ${resetPasswordUser.name}.`);
+      setResetPasswordUser(null);
+      setNewPasswordVal("Capstone2026!");
+      await loadData();
+    } else {
+      setUserActionError(res.error);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, name: string, email: string) => {
+    if (email === "benjamin54144752123@gmail.com") {
+      alert("Protección de seguridad: No se puede eliminar la cuenta del Super Administrador.");
+      return;
+    }
+    if (!confirm(`¿Está seguro de eliminar permanentemente la cuenta de ${name} (${email})?`)) {
+      return;
+    }
+    const res = await deleteUserAction(id, adminUser.email);
+    if (res.success) {
+      await loadData();
+    } else {
+      alert(res.error);
+    }
+  };
+
   const openEditModal = (item: SuscripcionItem) => {
     setEditingOfficial(item);
     setFormName(item.name);
@@ -260,6 +384,13 @@ export default function AdminPage() {
   const filteredSuscripciones = data.suscripciones.filter((s) => {
     if (filterDept === "ALL") return true;
     return s.department === filterDept;
+  });
+
+  const filteredUsers = data.users.filter((u) => {
+    const q = searchUserQuery.toLowerCase().trim();
+    const matchesSearch = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.department && u.department.toLowerCase().includes(q));
+    const matchesRole = filterUserRole === "ALL" || u.role === filterUserRole;
+    return matchesSearch && matchesRole;
   });
 
   return (
@@ -366,6 +497,7 @@ export default function AdminPage() {
             },
             { id: "INVENTARIO", label: `Inventario Técnico (${data.equipamientos.length})`, icon: Boxes },
             { id: "CUADRILLAS", label: `Funcionarios y Cuadrillas (${data.suscripciones.length})`, icon: Bell },
+            { id: "USUARIOS", label: `Gestión de Cuentas (${data.users.length})`, icon: Users },
             { id: "AUDITORIA", label: `Bitácora de Auditoría (${data.auditorias.length})`, icon: History },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -713,6 +845,188 @@ export default function AdminPage() {
           </div>
         )}
 
+                {/* TAB: USUARIOS (GESTOR DE CUENTAS RBAC) */}
+        {activeTab === "USUARIOS" && (
+          <div className="space-y-4">
+            {/* Header and Controls */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+                  <Users className="w-5 h-5 text-blue-700" />
+                  <span>Gestor de Cuentas y Accesos del Sistema (RBAC)</span>
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Administración de credenciales, roles, departamentos y puntaje de prioridad académica.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUserActionError(null);
+                  setIsAddUserModalOpen(true);
+                }}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition-all touch-target"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Nueva Cuenta / Usuario</span>
+              </button>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative flex-1 w-full sm:w-72">
+                <input
+                  type="text"
+                  value={searchUserQuery}
+                  onChange={(e) => setSearchUserQuery(e.target.value)}
+                  placeholder="Buscar por nombre, correo o departamento..."
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              </div>
+
+              <div className="flex items-center space-x-1.5 overflow-x-auto w-full sm:w-auto">
+                {[
+                  { id: "ALL", label: "Todos los Roles" },
+                  { id: "OWNER", label: "Super Admin" },
+                  { id: "IT_SERVICE", label: "Técnico TI" },
+                  { id: "ASSISTANT", label: "Encargada" },
+                  { id: "PROFESSOR", label: "Docente" },
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => setFilterUserRole(r.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                      filterUserRole === r.id
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Users List */}
+            <div className="grid grid-cols-1 gap-3">
+              {filteredUsers.length === 0 ? (
+                <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-slate-500 text-xs">
+                  No se encontraron cuentas con los criterios de búsqueda seleccionados.
+                </div>
+              ) : (
+                filteredUsers.map((u) => {
+                  const isSuperAdmin = u.email === "benjamin54144752123@gmail.com" || u.role === "OWNER";
+                  
+                  let roleBadge = {
+                    label: "Docente",
+                    bg: "bg-emerald-50 text-emerald-800 border-emerald-300",
+                  };
+                  if (u.role === "OWNER" || u.role === "IT_ADMIN") {
+                    roleBadge = { label: "Super Administrador", bg: "bg-purple-50 text-purple-800 border-purple-300" };
+                  } else if (u.role === "IT_SERVICE") {
+                    roleBadge = { label: "Soporte TI Terreno", bg: "bg-blue-50 text-blue-800 border-blue-300" };
+                  } else if (u.role === "ASSISTANT") {
+                    roleBadge = { label: "Encargada Recintos", bg: "bg-amber-50 text-amber-800 border-amber-300" };
+                  }
+
+                  return (
+                    <div
+                      key={u.id}
+                      className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-300 transition-all"
+                    >
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-bold text-slate-900 truncate">
+                            {u.name}
+                          </h3>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleBadge.bg}`}>
+                            {roleBadge.label}
+                          </span>
+                          {isSuperAdmin && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-white flex items-center space-x-1">
+                              <Shield className="w-3 h-3 text-amber-400" />
+                              <span>Cuenta Principal</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                          <span className="font-mono text-slate-800 font-semibold">{u.email}</span>
+                          {u.department && (
+                            <span>• {u.department}</span>
+                          )}
+                          {u.phone && (
+                            <span className="text-slate-500 font-mono">• Tel: {u.phone}</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-3 text-[11px] text-slate-500 pt-0.5">
+                          <span>
+                            Prioridad Académica: <strong className="text-blue-800 font-bold">{u.priorityScore ?? 100} pts</strong>
+                          </span>
+                          {u.createdAt && (
+                            <span>
+                              • Creado: {new Date(u.createdAt).toLocaleDateString("es-CL")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center space-x-2 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetPasswordUser(u);
+                            setNewPasswordVal("Capstone2026!");
+                            setUserActionError(null);
+                          }}
+                          className="px-3 py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-amber-800 hover:bg-amber-50 text-xs font-semibold flex items-center space-x-1 transition-colors touch-target"
+                          title="Restablecer Contraseña"
+                        >
+                          <Key className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Clave</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openEditUserModal(u)}
+                          className="px-3 py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-blue-800 hover:bg-blue-50 text-xs font-semibold flex items-center space-x-1 transition-colors touch-target"
+                          title="Editar Datos y Rol"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Editar</span>
+                        </button>
+
+                        {isSuperAdmin ? (
+                          <div
+                            className="p-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                            title="Cuenta protegida (No se puede eliminar)"
+                          >
+                            <Lock className="w-4 h-4" />
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(u.id, u.name, u.email)}
+                            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-red-700 hover:bg-red-50 transition-colors touch-target"
+                            title="Eliminar Cuenta"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+
         {/* TAB 4: AUDITORIA */}
         {activeTab === "AUDITORIA" && (
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
@@ -752,6 +1066,327 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+            {/* Modal: CREAR NUEVA CUENTA DE USUARIO */}
+      {isAddUserModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Crear Nueva Cuenta de Usuario</h3>
+                  <p className="text-xs text-slate-500">Asignación de credenciales y rol institucional (RBAC)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddUserModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {userActionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{userActionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">Nombre Completo *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Dr. Alejandro Soto"
+                  value={userFormName}
+                  onChange={(e) => setUserFormName(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-semibold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Correo Electrónico (Login) *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="alejandro.soto@institucion.cl"
+                    value={userFormEmail}
+                    onChange={(e) => setUserFormEmail(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Contraseña Inicial *</label>
+                  <input
+                    type="text"
+                    required
+                    value={userFormPassword}
+                    onChange={(e) => setUserFormPassword(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Rol en el Sistema *</label>
+                  <select
+                    value={userFormRole}
+                    onChange={(e) => setUserFormRole(e.target.value)}
+                    className="w-full bg-slate-50 text-xs font-bold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+                  >
+                    <option value="PROFESSOR">Docente Solicitante (/docente)</option>
+                    <option value="IT_SERVICE">Soporte TI Terreno (/tecnico)</option>
+                    <option value="ASSISTANT">Encargada Recintos (/encargado)</option>
+                    <option value="IT_ADMIN">Administrador General (/admin)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Teléfono Móvil</label>
+                  <input
+                    type="text"
+                    placeholder="+56 9 1234 5678"
+                    value={userFormPhone}
+                    onChange={(e) => setUserFormPhone(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">Facultad / Escuela / Departamento</label>
+                <input
+                  type="text"
+                  placeholder="Escuela de Informática y Telecomunicaciones"
+                  value={userFormDept}
+                  onChange={(e) => setUserFormDept(e.target.value)}
+                  className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddUserModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingUser}
+                  className="px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-md touch-target transition-all disabled:opacity-50"
+                >
+                  {isSubmittingUser ? "Creando Cuenta..." : "Registrar Cuenta"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: EDITAR CUENTA DE USUARIO */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Editar Cuenta: {editingUser.name}</h3>
+                  <p className="text-xs text-slate-500">Modificación de rol, departamento y prioridad</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {userActionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{userActionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">Nombre Completo *</label>
+                <input
+                  type="text"
+                  required
+                  value={userFormName}
+                  onChange={(e) => setUserFormName(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-semibold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Correo Electrónico *</label>
+                  <input
+                    type="email"
+                    required
+                    value={userFormEmail}
+                    onChange={(e) => setUserFormEmail(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Rol en el Sistema *</label>
+                  <select
+                    value={userFormRole}
+                    onChange={(e) => setUserFormRole(e.target.value)}
+                    className="w-full bg-slate-50 text-xs font-bold text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer"
+                  >
+                    <option value="OWNER">Super Administrador (OWNER)</option>
+                    <option value="IT_ADMIN">Administrador de TI (IT_ADMIN)</option>
+                    <option value="IT_SERVICE">Soporte TI Terreno (IT_SERVICE)</option>
+                    <option value="ASSISTANT">Encargada Recintos (ASSISTANT)</option>
+                    <option value="PROFESSOR">Docente Solicitante (PROFESSOR)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Facultad / Departamento</label>
+                  <input
+                    type="text"
+                    value={userFormDept}
+                    onChange={(e) => setUserFormDept(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">Teléfono</label>
+                  <input
+                    type="text"
+                    value={userFormPhone}
+                    onChange={(e) => setUserFormPhone(e.target.value)}
+                    className="w-full bg-slate-50 text-xs text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Puntaje de Prioridad Académica: <strong className="text-blue-800">{userFormScore} pts</strong>
+                </label>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value={userFormScore}
+                  onChange={(e) => setUserFormScore(Number(e.target.value))}
+                  className="w-full accent-blue-700 cursor-pointer"
+                />
+                <p className="text-[10px] text-slate-500">100 = Prioridad Máxima (Asistencia perfecta). Menor a 70 = Penalizado por inasistencias (No-Show).</p>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingUser}
+                  className="px-5 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold shadow-md touch-target transition-all disabled:opacity-50"
+                >
+                  {isSubmittingUser ? "Guardando..." : "Guardar Cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: RESTABLECER CONTRASEÑA */}
+      {resetPasswordUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl border border-slate-300 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Restablecer Contraseña</h3>
+                  <p className="text-xs text-slate-500">{resetPasswordUser.name} ({resetPasswordUser.email})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetPasswordUser(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {userActionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{userActionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">Nueva Contraseña *</label>
+                <input
+                  type="text"
+                  required
+                  minLength={6}
+                  value={newPasswordVal}
+                  onChange={(e) => setNewPasswordVal(e.target.value)}
+                  className="w-full bg-slate-50 text-xs font-mono text-slate-900 rounded-xl px-3 py-2.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Mínimo 6 caracteres. Se encriptará con bcrypt unidireccional.</p>
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setResetPasswordUser(null)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold touch-target"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingUser}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md touch-target transition-all disabled:opacity-50"
+                >
+                  {isSubmittingUser ? "Actualizando..." : "Confirmar Clave"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal: MODIFICAR HORARIOS (CONTROL ADMINISTRATIVO CON CONFIRMACIÓN DE SEGURIDAD) */}
       {editingReserva && (
