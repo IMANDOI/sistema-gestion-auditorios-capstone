@@ -26,6 +26,11 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeStreamRef = useRef<MediaStream | null>(null);
+  const startRequestRef = useRef<number>(0);
+  const onScanRef = useRef(onScan);
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
 
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -64,6 +69,7 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
 
   // Rigorous camera shutdown: stops all hardware media tracks immediately
   const stopCamera = useCallback(() => {
+    startRequestRef.current++; // cancel any pending getUserMedia
     if (activeStreamRef.current) {
       activeStreamRef.current.getTracks().forEach((track) => {
         track.stop();
@@ -108,13 +114,24 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
         audio: false,
       };
 
+      const requestId = ++startRequestRef.current;
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (requestId !== startRequestRef.current) {
+        // A newer start/stop happened meanwhile: release this orphan stream
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
       activeStreamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute("playsinline", "true");
-        await videoRef.current.play();
+        try {
+          await videoRef.current.play();
+        } catch (playErr: any) {
+          if (playErr?.name !== "AbortError") throw playErr;
+        }
+        if (requestId !== startRequestRef.current) return;
         setIsCameraActive(true);
       }
     } catch (err: any) {
@@ -212,104 +229,106 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
       isLocked = true;
       setDetectedToken(rawValue);
       playSuccessBeep();
-      onScan(rawValue);
+      onScanRef.current(rawValue);
 
-      // CRITICAL FIX: Automatically stop camera and turn off hardware stream immediately after scan
+      // Automatically stop camera and turn off hardware stream after scan
       setTimeout(() => {
         stopCamera();
-        isLocked = false;
       }, 500);
     };
 
+    let cancelled = false;
+    let frameToggle = false;
+
+    // Decode a region of the video with jsQR; returns points in video coordinates
+    const decodeRegion = (
+      video: HTMLVideoElement,
+      canvas: HTMLCanvasElement,
+      sx: number, sy: number, sw: number, sh: number,
+      dw: number, dh: number
+    ) => {
+      if (canvas.width !== dw) canvas.width = dw;
+      if (canvas.height !== dh) canvas.height = dh;
+      const pctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!pctx) return null;
+      pctx.drawImage(video, sx, sy, sw, sh, 0, 0, dw, dh);
+      const img = pctx.getImageData(0, 0, dw, dh);
+      const code = jsQR(img.data, dw, dh, { inversionAttempts: "attemptBoth" });
+      if (!code || !code.data || !code.data.trim()) return null;
+      const k = sw / dw;
+      const toVideo = (p: { x: number; y: number }) => ({ x: sx + p.x * k, y: sy + p.y * k });
+      return {
+        value: code.data.trim(),
+        points: [
+          code.location.topLeftCorner,
+          code.location.topRightCorner,
+          code.location.bottomRightCorner,
+          code.location.bottomLeftCorner,
+        ].map(toVideo),
+      };
+    };
+
     const processFrame = async () => {
+      if (cancelled || isLocked) return;
       const video = videoRef.current;
       const overlay = overlayCanvasRef.current;
       const processCanvas = processCanvasRef.current;
 
-      if (
-        video &&
-        video.readyState === video.HAVE_ENOUGH_DATA &&
-        overlay &&
-        processCanvas &&
-        !isLocked
-      ) {
-        if (overlay.width !== video.clientWidth || overlay.height !== video.clientHeight) {
-          overlay.width = video.clientWidth;
-          overlay.height = video.clientHeight;
-        }
+      try {
+        if (video && overlay && processCanvas && video.readyState >= 2 && video.videoWidth > 0) {
+          if (overlay.width !== video.clientWidth || overlay.height !== video.clientHeight) {
+            overlay.width = video.clientWidth;
+            overlay.height = video.clientHeight;
+          }
 
-        const now = performance.now();
-        if (now - lastScanTime >= 30) {
-          lastScanTime = now;
+          const now = performance.now();
+          if (now - lastScanTime >= 90) {
+            lastScanTime = now;
+            const vw = video.videoWidth;
+            const vh = video.videoHeight;
+            const scaleX = overlay.width / vw;
+            const scaleY = overlay.height / vh;
+            let result: { value: string; points: { x: number; y: number }[] } | null = null;
 
-          // 1. Try native BarcodeDetector
-          if (nativeDetector) {
-            try {
-              const barcodes = await nativeDetector.detect(video);
-              if (barcodes && barcodes.length > 0) {
-                const bc = barcodes[0];
-                const rawValue = (bc.rawValue || "").trim();
-                if (rawValue) {
-                  const scaleX = overlay.width / video.videoWidth;
-                  const scaleY = overlay.height / video.videoHeight;
-                  drawTrackingBox(bc.cornerPoints || [], rawValue, scaleX, scaleY);
-                  handleSuccessfulScan(rawValue);
-                  return;
-                }
-              } else {
-                const ctx = overlay.getContext("2d");
-                if (ctx) ctx.clearRect(0, 0, overlay.width, overlay.height);
+            // 1. Native BarcodeDetector (Android / ChromeOS / macOS)
+            if (nativeDetector) {
+              try {
+                const barcodes = await nativeDetector.detect(video);
+                const raw = barcodes?.[0]?.rawValue?.trim();
+                if (raw) result = { value: raw, points: barcodes[0].cornerPoints || [] };
+              } catch {
+                nativeDetector = null;
               }
-            } catch {
-              // Fallback to jsQR
             }
-          }
 
-          // 2. High-speed jsQR fallback
-          const maxDim = 640;
-          let targetW = video.videoWidth;
-          let targetH = video.videoHeight;
-          if (targetW > maxDim) {
-            targetH = Math.round((targetH * maxDim) / targetW);
-            targetW = maxDim;
-          }
+            // 2. jsQR: alternate center crop at native resolution and full frame
+            if (!result && !cancelled) {
+              frameToggle = !frameToggle;
+              if (frameToggle) {
+                const side = Math.round(Math.min(vw, vh) * 0.8);
+                const d = Math.min(side, 800);
+                result = decodeRegion(video, processCanvas, (vw - side) / 2, (vh - side) / 2, side, side, d, d);
+              } else {
+                const s = Math.min(1, 960 / vw);
+                result = decodeRegion(video, processCanvas, 0, 0, vw, vh, Math.round(vw * s), Math.round(vh * s));
+              }
+            }
 
-          if (processCanvas.width !== targetW || processCanvas.height !== targetH) {
-            processCanvas.width = targetW;
-            processCanvas.height = targetH;
-          }
-
-          const pctx = processCanvas.getContext("2d", { willReadFrequently: true });
-          if (pctx) {
-            pctx.drawImage(video, 0, 0, targetW, targetH);
-            const imgData = pctx.getImageData(0, 0, targetW, targetH);
-            const code = jsQR(imgData.data, imgData.width, imgData.height, {
-              inversionAttempts: "attemptBoth",
-            });
-
-            if (code && code.data && code.data.trim()) {
-              const rawValue = code.data.trim();
-              const scaleX = overlay.width / targetW;
-              const scaleY = overlay.height / targetH;
-              const points = [
-                code.location.topLeftCorner,
-                code.location.topRightCorner,
-                code.location.bottomRightCorner,
-                code.location.bottomLeftCorner,
-              ];
-
-              drawTrackingBox(points, rawValue, scaleX, scaleY);
-              handleSuccessfulScan(rawValue);
+            if (result && !cancelled) {
+              drawTrackingBox(result.points, result.value, scaleX, scaleY);
+              handleSuccessfulScan(result.value);
               return;
-            } else {
-              const ctx = overlay.getContext("2d");
-              if (ctx) ctx.clearRect(0, 0, overlay.width, overlay.height);
             }
+            const ctx = overlay.getContext("2d");
+            if (ctx) ctx.clearRect(0, 0, overlay.width, overlay.height);
           }
         }
+      } catch (err) {
+        // Never let a single bad frame kill the scan loop
+        console.warn("QR frame error:", err);
       }
 
-      if (isCameraActive && !isLocked) {
+      if (!cancelled && !isLocked) {
         animId = requestAnimationFrame(processFrame);
       }
     };
@@ -317,9 +336,10 @@ export const CameraQRScanner: React.FC<CameraQRScannerProps> = ({
     animId = requestAnimationFrame(processFrame);
 
     return () => {
+      cancelled = true;
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [isCameraActive, onScan, stopCamera]);
+  }, [isCameraActive, stopCamera]);
 
   // Decode QR from uploaded image file
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
