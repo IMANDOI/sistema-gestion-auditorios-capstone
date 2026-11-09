@@ -1,12 +1,12 @@
 # INSTRUCCIONES OFICIALES Y RÚBRICA DE EVALUACIÓN
-## Asignatura Capstone (PTY4614 / APT122) — Escuela de Informática y Telecomunicaciones, Duoc UC
+## ASIGNATURA CAPSTONE (PTY4614 - 002D) — Escuela de Informática y Telecomunicaciones, Duoc UC
 ### Evaluación Parcial Fase 2 (30%) — Informe Final Proyecto APT
 
 ---
 
 ## 1. Identificación de la Evaluación
 * **Nombre de la Evaluación:** Evaluación Parcial Fase 2 - Informe Final / Fase 2 (30%) - Informe final Proyecto APT
-* **Sigla / Asignatura:** PTY4614 / Capstone
+* **Asignatura:** ASIGNATURA CAPSTONE (PTY4614 - 002D)
 * **Ponderación:** 30% de la nota final de la asignatura
 * **Tiempo Asignado:** Semana 15
 * **Tiempo de Exposición:** 20 minutos por grupo ante la comisión evaluadora (simulando gerencia de proyecto).
