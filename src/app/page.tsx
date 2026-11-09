@@ -92,7 +92,7 @@ export default function LoginPage() {
           Gestión de Auditorios
         </h1>
         <p className="mt-1 text-sm font-medium text-slate-600">
-          Proyecto Capstone (APT122 / PTY4614) • Acceso al Sistema
+          Proyecto Capstone (PTY4614 - 002D) • Acceso al Sistema
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
                       </span>
                     </div>
                     <p className="text-xs text-indigo-800 font-mono">
-                      benjamin54144752123@gmail.com
+                      benjamin.navarrete@duocuc.cl
                     </p>
                   </div>
                 </div>
@@ -207,11 +207,11 @@ export default function LoginPage() {
             </div>
             <div className="space-y-1 font-mono text-[11px]">
               <div 
-                onClick={() => fillCredentials("benjamin54144752123@gmail.com", "OWNER")}
+                onClick={() => fillCredentials("benjamin.navarrete@duocuc.cl", "OWNER")}
                 className="cursor-pointer hover:bg-slate-200 p-1 rounded transition-colors flex justify-between"
                 title="Clic para autocompletar"
               >
-                <span><strong>Admin:</strong> benjamin54144752123@gmail.com</span>
+                <span><strong>Admin:</strong> benjamin.navarrete@duocuc.cl</span>
                 <span className="text-slate-400">Rellenar</span>
               </div>
               <div 
@@ -274,7 +274,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="benjamin54144752123@gmail.com"
+                  placeholder="benjamin.navarrete@duocuc.cl"
                   className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
