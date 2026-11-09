@@ -20,7 +20,7 @@
 * **Backend:** Next.js Server Actions (funciones RPC seguras en servidor; no hay endpoints REST expuestos públicamente).
 * **Validación & Seguridad:** Zod para esquemas de entrada, `bcrypt` (salt rounds 10) para contraseñas, cookies de sesión `HttpOnly`/`Secure`/`SameSite=Lax`.
 * **Persistencia:** Prisma 6 ORM. Consultas parametrizadas (anti SQL Injection). SQLite (`dev.db`) en local; PostgreSQL en Neon en producción.
-* **Escaneo QR:** `CameraQRScanner.tsx` con Canvas HTML5, recorte nativo central 800x800, decodificación invertida `attemptBoth` y auto-apagado de stream tras detección.
+* **Escaneo QR:** `CameraQRScanner.tsx` con Canvas off-DOM en memoria (anti clearing en Safari/Chrome móvil), sub-muestreo inteligente a 420px (tiempo de decodificación ~12ms), visor reticular esmeralda animado, feedback háptico (vibración) y sonoro, control de linterna (torch) y doble contingencia de captura fotográfica nativa (`capture="environment"`). Matriz QR generada bajo norma ISO/IEC 18004 con Quiet Zone de 4 módulos y nivel de corrección H (30%).
 * **Automatización:** 4 Bots RPA (detección No-Show tras 15 min, alertas a cuadrillas, cómputo Delta-T horas soporte, bitácora forense).
 * **Continuidad Operativa:** Módulo IRP (Incident Response Plan) con severidades SEV-1 a SEV-4.
 
@@ -47,7 +47,7 @@
 * `T04`: Autenticación, Seguridad y RBAC (bcrypt, HttpOnly, Gestor de Cuentas) — **[COMPLETADO]**
 * `T05`: Formulario Modular de Reservas (Selector, validación anti-traslape) — **[COMPLETADO]**
 * `T06`: Panel de Dictamen y Gestión Logística (Reprogramación segura protegida) — **[COMPLETADO]**
-* `T07`: Subsistema de Validación QR Móvil (Pase 2D + escáner con recorte nativo y auto-apagado) — **[COMPLETADO CON AJUSTE]**
+* `T07`: Subsistema de Validación QR Móvil (Pase 2D ISO 18004 + escáner multi-tier off-DOM canvas, visor reticular y doble contingencia nativa) — **[COMPLETADO 100% OPERATIVO]**
 * `T08`: Control de Inventario y Equipos (Mantenimiento, MTTR, constancias) — **[COMPLETADO CON AJUSTE]**
 * `T09`: Motor de Correos y Difusión por Área (Gestor de cuadrillas y plantillas) — **[COMPLETADO CON AJUSTE]**
 * `T10`: Dashboard de Analítica y Horas de TI (Métricas operativas y Delta-T) — **[COMPLETADO]**
