@@ -5,9 +5,10 @@
 ---
 
 ## 1. Identificación y Enlaces Oficiales
-* **Proyecto:** Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios (Capstone PTY4614 / APT122).
+* **Asignatura:** ASIGNATURA CAPSTONE (PTY4614 - 002D).
+* **Proyecto:** Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios.
 * **Institución:** Duoc UC — Escuela de Informática y Telecomunicaciones.
-* **Estudiante / Desarrollador Principal:** Benjamín Navarrete (`benjamin54144752123@gmail.com`).
+* **Estudiante / Desarrollador Principal:** Benjamin Navarrete (`benjamin.navarrete@duocuc.cl`).
 * **Profesor Guía:** Diego Garcés M.
 * **Repositorio GitHub:** [https://github.com/IMANDOI/sistema-gestion-auditorios-capstone](https://github.com/IMANDOI/sistema-gestion-auditorios-capstone)
 * **Despliegue Producción en Vercel:** [https://sistema-gestion-auditorios-capstone.vercel.app](https://sistema-gestion-auditorios-capstone.vercel.app)
@@ -93,7 +94,7 @@
 * **Instrucciones Oficiales y Rúbrica 10 Indicadores Fase 2:**  
   `Fase 2/Instrucciones_y_Rubrica_Informe_Final_Fase2_30pct.md`
 * **Guía Oficial de la Fase 2 (Corregida con Anexo A):**  
-  `Fase 2/Evidencias Grupales/2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamín_Navarrete.docx`
+  `Fase 2/Evidencias Grupales/2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamin_Navarrete.docx`
 * **Manual Maestro de Estudio y Defensa (Word con Índice y 25 preguntas de defensa técnica):**  
   `Fase 2/Evidencias Grupales/MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.docx`  
   `Fase 2/Evidencias Grupales/MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.md`
