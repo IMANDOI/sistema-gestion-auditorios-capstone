@@ -51,29 +51,27 @@
 * `T08`: Control de Inventario y Equipos (Mantenimiento, MTTR, constancias) — **[COMPLETADO CON AJUSTE]**
 * `T09`: Motor de Correos y Difusión por Área (Gestor de cuadrillas y plantillas) — **[COMPLETADO CON AJUSTE]**
 * `T10`: Dashboard de Analítica y Horas de TI (Métricas operativas y Delta-T) — **[COMPLETADO]**
-* `T11`: Pruebas de Calidad ISO/IEC 25010 y Seguridad — **[EN EJECUCIÓN / HITO FASE 3]**
-* `T12`: Despliegue en Producción y Cierre (Vercel + Neon Cloud) — **[ADELANTADO / OPERATIVO 100%]**
+* `T11`: Pruebas de Calidad ISO/IEC 25010 y Seguridad — **[COMPLETADO 100% / SUITE AUTOMATIZADA 8/8 PASS]**
+* `T12`: Despliegue en Producción y Cierre (Vercel + Neon Cloud) — **[OPERATIVO 100% EN PRODUCCIÓN]**
 
 ---
 
 ## 5. Historial de Calificaciones y Foco de Mejora
 * **Fase 1 (Semana 4):** Aprobada con alta calificación.
-* **Fase 2 (Semana 9):** Calificación **5.6 / 7.0** (81 / 100 pts).
+* **Fase 2 - Entrega de Avance (Semana 9):** Calificación **5.6 / 7.0** (81 / 100 pts).
   * *Puntos Fuertes (100%):* Git (Criterios 6 y 7 = 35% nota), Metodología (10%), Redacción/Ortografía (5%), Trabajo en equipo (10%).
   * *Puntos Perdidos (-19 pts):*
     1. Criterio 1 (-7 pts): Faltó justificar los ajustes técnicos con dificultad, facilitador y retroalimentación docente.
     2. Criterio 3 (-10 pts): Evidencias no mapeaban 1 a 1 con la nomenclatura T01-T12 de la Fase 1.
     3. Criterio 4 (-2 pts): Vocabulario técnico requería mayor precisión formal de ingeniería.
-* **Fase 3 (Hito Final):** Meta de calificación **7.0**. Enfoque en certificación de pruebas de calidad ISO/IEC 25010, alineación estricta y defensa oral solvente.
+* **Fase 2 - Informe Final y Presentación (30% Ponderación - Semana 15, Martes 24 Nov):** Meta de calificación **7.0**. Enfoque en fórmula de 4 partes, mapeo T01-T12, conclusiones en inglés y certificación ISO 25010.
 
 ---
 
 ## 6. Habilidades y Skills del Espacio (.agents/skills/)
-* duoc-capstone-reviewer: Auditoría de rúbricas oficiales (Criterios 1 al 8) de Duoc UC.
-* 
-edaccion-profesional-documentos: Normas de estilo técnico y justificación de 4 partes.
-* 
-egistro-estado-proyecto: Protocolo de lectura/escritura de PROJECT_STATE.md para ahorro de tokens.
+* duoc-capstone-reviewer: Auditoría de rúbricas oficiales (Criterios 1 al 10) de Duoc UC.
+* redaccion-profesional-documentos: Normas de estilo técnico y justificación de 4 partes.
+* registro-estado-proyecto: Protocolo de lectura/escritura de PROJECT_STATE.md para ahorro de tokens.
 * ejecucion-paso-a-paso-validada: Ejecución secuencial, empíricamente validada y anti-estancamiento.
 * certificacion-calidad-iso25010: Estándar formal de matrices de casos de prueba y aseguramiento de calidad (QA).
 * programacion-limpia-y-eficiente: Edición quirúrgica de alta velocidad, tipado Zod/TypeScript estricto y desacoplamiento modular.
@@ -81,7 +79,7 @@ egistro-estado-proyecto: Protocolo de lectura/escritura de PROJECT_STATE.md para
 ## 7. Estructura Limpia del Espacio de Trabajo
 * objetos proyecto de titulo/: Código fuente REAL y activo (Next.js 15, Prisma 6, TypeScript).
 * Fase 1/: Entregables oficiales de la Fase 1 (Definición y Arquitectura).
-* Fase 2/: Entregables oficiales de la Fase 2 (Desarrollo y Avance con evidencias).
+* Fase 2/: Entregables oficiales de la Fase 2 (Desarrollo, Pruebas, Informe Final 30% y Presentación).
 * _archivo_historico/: Respaldo seguro de carpetas obsoletas (código viejo de mayo y duplicados).
 * scratch/: Utilidades y scripts de soporte limpios.
 
