@@ -24,12 +24,12 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
 
     QRCode.toDataURL(value, {
       width: size * 2, // 2x resolution for sharp rendering on retina / high-DPI displays
-      margin: 2,
+      margin: 4, // ISO/IEC 18004 Quiet Zone standard for flawless optical recognition
       color: {
-        dark: "#0f172a", // Deep slate for maximum contrast against white
+        dark: "#000000", // Pure black for 21:1 maximum optical contrast
         light: "#ffffff",
       },
-      errorCorrectionLevel: "M",
+      errorCorrectionLevel: "H", // High (30% recovery) for glare and reflection resilience
     })
       .then((url) => {
         setDataUrl(url);
