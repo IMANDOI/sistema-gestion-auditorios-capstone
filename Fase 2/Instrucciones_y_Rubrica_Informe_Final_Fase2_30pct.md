@@ -66,3 +66,4 @@
 | **IE 9: Equidad y Aportes en Repositorio** | 15% | Generan evidencias dentro del repositorio del proyecto del aporte de cada uno de los integrantes del equipo que permitan identificar la equidad en el trabajo y la participación de cada estudiante. |
 | **IE 10: Colaboración y Trabajo en Equipo** | 10% | El estudiante realiza un excelente trabajo en equipo, fomentando un ambiente positivo, siendo participativo en las sesiones presenciales y participando de manera equitativa en la presentación (evaluación individual). |
 | **TOTAL** | **100%** | **Equivale al 30% de la nota final de la asignatura.** |
+
