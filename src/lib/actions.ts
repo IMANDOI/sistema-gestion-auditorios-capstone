@@ -1139,7 +1139,7 @@ export async function deleteUserAction(
     }
 
     // Protection: NEVER delete Super Admin
-    if (user.email === "benjamin54144752123@gmail.com" || user.role === "OWNER") {
+    if (user.email === "benjamin.navarrete@duocuc.cl" || user.role === "OWNER") {
       return { success: false, error: "Protección de seguridad: No está permitido eliminar la cuenta del Super Administrador." };
     }
 
