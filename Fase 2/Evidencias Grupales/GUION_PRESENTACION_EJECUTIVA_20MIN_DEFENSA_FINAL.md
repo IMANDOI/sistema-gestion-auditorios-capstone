@@ -1,8 +1,8 @@
 # GUION DE PRESENTACIÓN EJECUTIVA Y DEFENSA ORAL (20 MINUTOS)
 ## Simulación de Presentación a Gerencia de Proyecto / Comisión Evaluadora
-### Asignatura Capstone (PTY4614 / APT122) — Evaluación Final Fase 2 (30%)
+### ASIGNATURA CAPSTONE (PTY4614 - 002D) — Evaluación Final Fase 2 (30%)
 **Proyecto:** Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios  
-**Expositor / Estudiante Desarrollador:** Benjamín Navarrete (`benjamin54144752123@gmail.com`)  
+**Expositor / Estudiante Desarrollador:** Benjamin Navarrete (`benjamin.navarrete@duocuc.cl`)  
 **Profesor Guía:** Diego Garcés M.  
 **Fecha de Presentación:** Martes 24 de Noviembre de 2026, 14:30 hrs  
 **Duración Total:** 20 minutos (15 minutos de exposición + 5 minutos de defensa y preguntas de la comisión)
@@ -25,7 +25,7 @@
 ## 2. Guion Verbal Paso a Paso (Libreto Literal para la Exposición)
 
 ### Bloque 1: Apertura, Contexto y Diagnóstico (00:00 - 03:00)
-> *"Muy buenas tardes, distinguidos miembros de la comisión evaluadora y profesor guía Diego Garcés. Mi nombre es Benjamín Navarrete y hoy tengo el agrado de presentar ante ustedes el cierre de ingeniería de nuestro Proyecto Capstone:*
+> *"Muy buenas tardes, distinguidos miembros de la comisión evaluadora y profesor guía Diego Garcés. Mi nombre es Benjamin Navarrete y hoy tengo el agrado de presentar ante ustedes el cierre de ingeniería de nuestro Proyecto Capstone:*
 >
 > ***'Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios'.***
 >
