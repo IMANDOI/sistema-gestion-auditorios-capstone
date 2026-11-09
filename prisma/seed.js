@@ -23,8 +23,8 @@ async function main() {
   // 2. Users
   const admin = await prisma.user.create({
     data: {
-      name: "Benjamín Navarrete (Super Administrador)",
-      email: "benjamin54144752123@gmail.com",
+      name: "Benjamin Navarrete (Super Administrador)",
+      email: "benjamin.navarrete@duocuc.cl",
       passwordHash: defaultPasswordHash,
       role: "OWNER",
       department: "Dirección de Tecnologías de Información",
