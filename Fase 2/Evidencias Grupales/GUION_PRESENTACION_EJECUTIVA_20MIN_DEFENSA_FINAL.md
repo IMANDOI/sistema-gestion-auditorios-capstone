@@ -113,3 +113,4 @@
 ### Pregunta 4: *"¿Cómo se protegen los registros de auditoría de un administrador malintencionado?"*
 * **Respuesta del Estudiante:**
   > *"Implementamos el modelo `RegistroAuditoria` bajo el patrón arquitectónico Append-Only. En el código del backend no existe ningún método `update` ni `delete` para esta entidad; la base de datos solo permite operaciones `create`. Además, cada registro almacena el identificador criptográfico del usuario, su rol, la dirección IP de origen, la acción realizada y la marca de tiempo inmutable. En producción sobre PostgreSQL, el usuario de base de datos posee permisos restringidos que impiden la alteración de la tabla forense."*
+
