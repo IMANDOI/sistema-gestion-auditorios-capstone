@@ -86,16 +86,20 @@ egistro-estado-proyecto: Protocolo de lectura/escritura de PROJECT_STATE.md para
 * scratch/: Utilidades y scripts de soporte limpios.
 
 ## 8. Archivos Clave del Proyecto (Dónde mirar)
+* **Informe Final Proyecto APT - Fase 2 (30% Ponderación) [NUEVO MASTER]:**  
+  `Fase 2/Evidencias Grupales/Guia3_Informe_Final_Proyecto_APT_Benjamin_Navarrete.docx` (1.89 MB, Portada, Abstract ESP/ENG, Matriz T01-T12, ISO 25010, Conclusiones/Reflexión en Inglés y 13 Figuras)  
+  `Fase 2/Evidencias Grupales/Guia3_Informe_Final_Proyecto_APT_Benjamin_Navarrete.md`
+* **Guion de Presentación Ejecutiva (20 Minutos - Martes 24 Nov):**  
+  `Fase 2/Evidencias Grupales/GUION_PRESENTACION_EJECUTIVA_20MIN_DEFENSA_FINAL.docx`  
+  `Fase 2/Evidencias Grupales/GUION_PRESENTACION_EJECUTIVA_20MIN_DEFENSA_FINAL.md`
+* **Instrucciones Oficiales y Rúbrica 10 Indicadores Fase 2:**  
+  `Fase 2/Instrucciones_y_Rubrica_Informe_Final_Fase2_30pct.md`
 * **Guía Oficial de la Fase 2 (Corregida con Anexo A):**  
   `Fase 2/Evidencias Grupales/2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamín_Navarrete.docx`
 * **Manual Maestro de Estudio y Defensa (Word con Índice y 25 preguntas de defensa técnica):**  
   `Fase 2/Evidencias Grupales/MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.docx`  
   `Fase 2/Evidencias Grupales/MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.md`
-* **Manual RPA y Contingencias:**  
-  `Fase 2/Evidencias Grupales/MANUAL_RPA_Y_PLAN_DE_CONTINGENCIAS.md`
-* **Guía de Despliegue Vercel y Neon:**  
-  `Fase 2/Evidencias Grupales/GUIA_DESPLIEGUE_VERCEL_Y_NEON.md`
 * **Código Fuente Principal:**  
-  `objetos proyecto de titulo/src/components/CameraQRScanner.tsx` (Lector QR)  
-  `objetos proyecto de titulo/prisma/schema.prisma` (Base de Datos)
+  `objetos proyecto de titulo/src/components/CameraQRScanner.tsx` (Lector QR Multi-tier sub-12ms)  
+  `objetos proyecto de titulo/prisma/schema.prisma` (Base de Datos Relacional 3FN)
 
