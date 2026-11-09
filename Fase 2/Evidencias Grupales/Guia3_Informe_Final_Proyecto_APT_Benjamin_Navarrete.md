@@ -1,7 +1,7 @@
 # GUÍA 3: INFORME FINAL PROYECTO APT
 ## FASE 2 (30%) — DESARROLLO E IMPLANTACIÓN
-### Asignatura Capstone (PTY4614 / APT122) — Duoc UC
-**Estudiante Desarrollador:** Benjamín Navarrete (`benjamin54144752123@gmail.com`)  
+### ASIGNATURA CAPSTONE (PTY4614 - 002D) — Duoc UC
+**Estudiante Desarrollador:** Benjamin Navarrete (`benjamin.navarrete@duocuc.cl`)  
 **Profesor Guía:** Diego Garcés M.  
 **Ponderación:** 30% de la Nota Final (Semana 15)  
 **Fecha de Presentación:** Martes 24 de Noviembre de 2026, 14:30 hrs  
@@ -14,6 +14,9 @@
 
 | Campo Institucional | Descripción del Proyecto |
 | :--- | :--- |
+| **Asignatura** | ASIGNATURA CAPSTONE (PTY4614 - 002D) |
+| **Estudiante Desarrollador** | Benjamin Navarrete (`benjamin.navarrete@duocuc.cl`) |
+| **Profesor Guía** | Diego Garcés M. |
 | **Nombre del Proyecto** | Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios. |
 | **Área(s) de Desempeño del Plan de Estudio** | 1. Ingeniería de Software y Arquitectura Web Full-Stack.<br>2. Gestión de Bases de Datos y Modelamiento Relacional Escalable.<br>3. Ciberseguridad Defensiva, Trazabilidad e Integridad de la Información.<br>4. Automatización Robótica de Procesos (RPA) y Calidad de Software (QA). |
 | **Competencias del Plan de Estudio Abordadas** | • Realizar pruebas de certificación tanto de los productos como de los procesos utilizando buenas prácticas definidas por la industria (ISO/IEC 25010).<br>• Gestionar proyectos informáticos, ofreciendo alternativas para la toma de decisiones de acuerdo a los requerimientos de la organización.<br>• Construir modelos de datos para soportar los requerimientos de la organización de acuerdo a un diseño definido y escalable en el tiempo (Prisma ORM / PostgreSQL).<br>• Desarrollar una solución de software utilizando técnicas que permitan sistematizar el proceso de desarrollo y mantenimiento, asegurando el logro de los objetivos (Next.js 15 Serverless). |
@@ -124,7 +127,7 @@ Se implementó un marco ágil híbrido **Scrum/Kanban** en 4 Sprints quincenales
 ---
 
 ## 6. INTERESES Y PROYECCIONES PROFESIONALES
-El proyecto consolidó el perfil de Benjamín Navarrete hacia la **Arquitectura Cloud Serverless**, la **Ciberseguridad Defensiva** y la **Automatización RPA**. Proyección inmediata como Ingeniero de Software Full-Stack / Cloud Engineer con metas de certificación AWS Solutions Architect.
+El proyecto consolidó el perfil de Benjamin Navarrete hacia la **Arquitectura Cloud Serverless**, la **Ciberseguridad Defensiva** y la **Automatización RPA**. Proyección inmediata como Ingeniero de Software Full-Stack / Cloud Engineer con metas de certificación AWS Solutions Architect.
 
 ---
 
