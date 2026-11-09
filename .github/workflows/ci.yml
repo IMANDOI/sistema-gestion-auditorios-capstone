@@ -1,0 +1,35 @@
+name: CI - Integración Continua y Calidad ISO/IEC 25010
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    name: Verificación de Calidad y Compilación
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar Dependencias
+        run: npm ci
+
+      - name: Generar Cliente Prisma
+        run: npx prisma generate
+
+      - name: Verificación Estricta de Tipos (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Ejecutar Suite de Pruebas Automatizadas ISO 25010
+        run: npm test
+
