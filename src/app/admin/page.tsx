@@ -342,7 +342,7 @@ export default function AdminPage() {
 
   const handleDeleteUser = async () => {
     if (!deletingUser) return;
-    if (deletingUser.email === "benjamin54144752123@gmail.com" || deletingUser.role === "OWNER") {
+    if (deletingUser.email === "benjamin.navarrete@duocuc.cl" || deletingUser.role === "OWNER") {
       alert("Protección de seguridad estricta: No se puede eliminar la cuenta del Super Administrador.");
       return;
     }
@@ -1099,7 +1099,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 filteredUsers.map((u) => {
-                  const isSuperAdmin = u.email === "benjamin54144752123@gmail.com" || u.role === "OWNER";
+                  const isSuperAdmin = u.email === "benjamin.navarrete@duocuc.cl" || u.role === "OWNER";
                   
                   let roleBadge = {
                     label: "Docente",
