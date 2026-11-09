@@ -443,9 +443,21 @@ export async function updateReservationScheduleAction(
 
 
 export async function processCheckInAction(qrToken: string, tecnicoId: string) {
+  let cleanToken = qrToken.trim();
+  if (cleanToken.includes("token=")) {
+    try {
+      const url = new URL(cleanToken);
+      const param = url.searchParams.get("token");
+      if (param) cleanToken = param.trim();
+    } catch {
+      const match = cleanToken.match(/token=([a-zA-Z0-9\-_]+)/);
+      if (match) cleanToken = match[1].trim();
+    }
+  }
+
   const reserva = await prisma.reserva.findFirst({
     where: {
-      qrToken: qrToken.trim(),
+      qrToken: cleanToken,
       status: "APPROVED",
     },
     include: { equipamientos: { include: { equipamiento: true } } },
