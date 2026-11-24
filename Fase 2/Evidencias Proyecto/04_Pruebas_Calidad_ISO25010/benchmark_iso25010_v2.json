@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "proyecto": "Sistema de Gestión y Control Operativo de Auditorios (SIGOA)",
+    "asignatura": "ASIGNATURA CAPSTONE (PTY4614 - 002D)",
+    "estudiante": "Benjamin Navarrete",
+    "versionArquitectura": "v2.0",
+    "fechaEjecucionIso": "2026-11-23T22:48:33.217Z",
+    "entorno": {
+      "nodeVersion": "v24.11.1",
+      "plataforma": "win32",
+      "arquitectura": "x64"
+    },
+    "totalOperaciones": 3500,
+    "duracionAcumuladaMs": 31.1549
+  },
+  "integridadSha256": {
+    "suitePruebas": {
+      "archivo": "objetos proyecto de titulo/tests/iso25010.test.mjs",
+      "sha256": "3ba3ec992a30cc5d57e3dda36e10c67b1acbe8352b8ef2936a9c0466fd832d08"
+    },
+    "reporteJunitXml": {
+      "archivo": "Fase 2/Evidencias Proyecto/04_Pruebas_Calidad_ISO25010/junit_iso25010_v2.xml",
+      "sha256": "986116092af9c5138490562810c262f395b350eb2559db5307e590d246bff540"
+    }
+  },
+  "escenarios": [
+    {
+      "id": "CP-FUNC-01",
+      "nombre": "Verificación Anti-Solapamiento Horario",
+      "normaIso": "Adecuación Funcional",
+      "operaciones": 1000,
+      "duracionTotalMs": 1.8603,
+      "latenciaPromedioMs": 0.001614,
+      "latenciaP95Ms": 0.0021,
+      "latenciaMinMs": 0.0012,
+      "latenciaMaxMs": 0.028,
+      "throughputOpsSeg": 537547.71
+    },
+    {
+      "id": "CP-SEC-03",
+      "nombre": "Ciclo Firma + Verificación QR2 HMAC-SHA256 (timingSafeEqual)",
+      "normaIso": "Seguridad Criptográfica",
+      "operaciones": 1000,
+      "duracionTotalMs": 21.0936,
+      "latenciaPromedioMs": 0.02078,
+      "latenciaP95Ms": 0.0313,
+      "latenciaMinMs": 0.0151,
+      "latenciaMaxMs": 0.4304,
+      "throughputOpsSeg": 47407.74
+    },
+    {
+      "id": "CP-INT-01",
+      "nombre": "Generación iCalendar RFC 5545 (.ics con VALARM -PT15M)",
+      "normaIso": "Interoperabilidad",
+      "operaciones": 500,
+      "duracionTotalMs": 4.8831,
+      "latenciaPromedioMs": 0.009543,
+      "latenciaP95Ms": 0.0105,
+      "latenciaMinMs": 0.0077,
+      "latenciaMaxMs": 0.2813,
+      "throughputOpsSeg": 102393.97
+    },
+    {
+      "id": "CP-SEC-02",
+      "nombre": "Bloqueo Zod contra Payloads de Inyección SQLi",
+      "normaIso": "Seguridad (OWASP A03)",
+      "operaciones": 1000,
+      "duracionTotalMs": 3.3179,
+      "latenciaPromedioMs": 0.0031,
+      "latenciaP95Ms": 0.0037,
+      "latenciaMinMs": 0.0011,
+      "latenciaMaxMs": 0.4079,
+      "throughputOpsSeg": 301395.46
+    }
+  ]
+}

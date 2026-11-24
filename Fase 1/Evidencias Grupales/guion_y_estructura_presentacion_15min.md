@@ -40,10 +40,10 @@ gantt
   * Logo / Isotipo tecnológico sobrio de auditorio y código QR.
   * Título: *Sistema Autónomo de Gestión Operativa, Trazabilidad, Medición de Horas de TI y Analítica para Auditorios*.
   * Subtítulo: *Definición de Proyecto Capstone (APT122 / PTY4614) - Producto Mínimo Viable (MVP)*.
-  * Datos: Benjamín Abraham Navarrete Hernández | Carrera: Ingeniería en Informática / Análisis Programador | Sede La Florida.
+  * Datos: Benjamin Abraham Navarrete Hernández | Carrera: Ingeniería en Informática / Análisis Programador | Sede La Florida.
   * Repositorio: `github.com/IMANDOI/sistema-gestion-auditorios-capstone`.
 * **Lo que debes decir (Guion Oral):**
-  > *"Estimada comisión evaluadora, muy buenos días. Mi nombre es Benjamín Navarrete Hernández y a continuación presento la definición de mi Proyecto Capstone: una plataforma web autónoma y modular para la gestión operativa, validación presencial mediante códigos QR dinámicos, cómputo exacto de horas de soporte técnico y analítica para auditorios y espacios de alta demanda. La propuesta se concibe formalmente como un Producto Mínimo Viable de arquitectura desacoplada, aplicable a cualquier institución."*
+  > *"Estimada comisión evaluadora, muy buenos días. Mi nombre es Benjamin Navarrete Hernández y a continuación presento la definición de mi Proyecto Capstone: una plataforma web autónoma y modular para la gestión operativa, validación presencial mediante códigos QR dinámicos, cómputo exacto de horas de soporte técnico y analítica para auditorios y espacios de alta demanda. La propuesta se concibe formalmente como un Producto Mínimo Viable de arquitectura desacoplada, aplicable a cualquier institución."*
 
 ---
 

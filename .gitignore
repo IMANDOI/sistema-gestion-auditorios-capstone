@@ -1,39 +1,41 @@
-# dependencies
-/node_modules
+# Dependencies
+node_modules/
+**/node_modules/
 /.pnp
 .pnp.js
 .yarn/cache
 
-# testing
-/coverage
-
-# next.js
-/.next/
+# Next.js & Build
+.next/
+**/.next/
 /out/
+/build/
+*.tsbuildinfo
+next-env.d.ts
 
-# production
-/build
+# Environment & Secrets (NEVER commit)
+.env
+**/.env
+.env*.local
+**/.env*.local
+.vercel/
+**/.vercel/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Databases & Logs
+dev.db
+dev.db-journal
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# SQLite local DB
-dev.db
-dev.db-journal
+# Local archives, Python & Temp previews
+__pycache__/
+**/__pycache__/
+_archivo_historico/
+scratch/
+~$*
+.~lock.*
+**/.~lock.*
+*.tmp
+.DS_Store
+Thumbs.db

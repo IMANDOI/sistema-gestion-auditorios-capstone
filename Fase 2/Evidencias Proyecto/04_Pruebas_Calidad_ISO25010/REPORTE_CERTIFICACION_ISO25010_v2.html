@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reporte de Certificación ISO/IEC 25010 — Arquitectura v2.0</title>
+  <style>
+    :root {
+      --navy: #002B49;
+      --navy-dark: #001B2E;
+      --gold: #D98200;
+      --emerald: #059669;
+      --emerald-bg: #ECFDF5;
+      --slate-900: #0F172A;
+      --slate-600: #475569;
+      --slate-200: #E2E8F0;
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--slate-900);
+      line-height: 1.5;
+    }
+    .hero {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);
+      color: #FFFFFF;
+      padding: 28px 32px;
+      border-bottom: 4px solid var(--gold);
+    }
+    .hero-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .hero-kicker {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #FCD34D;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .hero h1 {
+      margin: 0 0 8px 0;
+      font-size: 26px;
+      font-weight: 800;
+    }
+    .hero-sub {
+      margin: 0;
+      font-size: 14px;
+      color: #CBD5E1;
+    }
+    .hero-pill {
+      background: rgba(5, 150, 105, 0.2);
+      border: 1px solid #34D399;
+      color: #A7F3D0;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      text-align: right;
+    }
+    .container {
+      max-width: 1220px;
+      margin: 26px auto 48px auto;
+      padding: 0 24px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--slate-200);
+      border-top: 4px solid var(--navy);
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+    .kpi-card.green { border-top-color: var(--emerald); }
+    .kpi-card.gold { border-top-color: var(--gold); }
+    .kpi-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-600);
+      font-weight: 700;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 4px 0;
+    }
+    .kpi-card.green .kpi-value { color: var(--emerald); }
+    .kpi-foot { font-size: 12.5px; color: var(--slate-600); }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--slate-200);
+      padding-bottom: 12px;
+    }
+    .panel h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--navy);
+    }
+    .search-box {
+      padding: 8px 12px;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      min-width: 280px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    th {
+      background: var(--navy);
+      color: #FFFFFF;
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--slate-200);
+      vertical-align: middle;
+    }
+    tr:hover td { background: #F8FAFC; }
+    .mono { font-family: 'Cascadia Code', 'Consolas', monospace; }
+    .num { text-align: right; white-space: nowrap; }
+    .muted { color: var(--slate-600); }
+    .bold-navy { font-weight: 700; color: var(--navy); }
+    .bold-green { font-weight: 700; color: var(--emerald); }
+    .suite-tag {
+      display: inline-block;
+      background: #EFF6FF;
+      color: #1E3A8A;
+      border: 1px solid #BFDBFE;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pass {
+      display: inline-block;
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border: 1px solid #A7F3D0;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .badge-fail {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FECACA;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 22px;
+      margin-top: 18px;
+    }
+    .chart-box {
+      background: #F8FAFC;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .chart-box h3 {
+      margin: 0 0 12px 0;
+      font-size: 14.5px;
+      color: var(--navy);
+    }
+    .bar-item { margin-bottom: 12px; }
+    .bar-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 4px;
+      gap: 8px;
+    }
+    .bar-track {
+      background: #E2E8F0;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; }
+    .bar-navy { background: linear-gradient(90deg, #002B49, #0284C7); }
+    .bar-gold { background: linear-gradient(90deg, #D98200, #F59E0B); }
+    .scen-name { font-weight: 700; color: var(--slate-900); }
+    .scen-iso { font-size: 12px; color: var(--slate-600); }
+    .hash-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .hash-item {
+      background: #F8FAFC;
+      border: 1px solid var(--slate-200);
+      border-left: 4px solid var(--navy);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .hash-code {
+      font-size: 12.5px;
+      word-break: break-all;
+      color: #0F172A;
+    }
+    .btn-copy {
+      background: var(--navy);
+      color: #FFFFFF;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-copy:hover { background: #00416D; }
+    footer {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--slate-600);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-kicker">Duoc UC — Escuela de Informática y Telecomunicaciones • ASIGNATURA CAPSTONE (PTY4614 - 002D)</div>
+        <h1>Reporte de Certificación de Calidad ISO/IEC 25010 (Arquitectura v2.0)</h1>
+        <p class="hero-sub">
+          Proyecto: Sistema de Gestión y Control Operativo de Auditorios (SIGOA)<br />
+          Estudiante: <strong>Benjamin Navarrete</strong> • Arquitectura v2.0 • Diciembre de 2026
+        </p>
+      </div>
+      <div class="hero-pill">
+        CERTIFICACIÓN APROBADA<br />
+        12 / 12 CASOS PASS (100%)
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="kpi-label">Suite Automatizada JUnit</div>
+        <div class="kpi-value">12/12 PASS</div>
+        <div class="kpi-foot">0 fallos • 282.04 ms ejecución suite</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Carga de Benchmark Ejecutada</div>
+        <div class="kpi-value">3,500 ops</div>
+        <div class="kpi-foot">4 escenarios críticos bajo Node v24.11.1</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">Duración Total Benchmark</div>
+        <div class="kpi-value">31.15 ms</div>
+        <div class="kpi-foot">Medición real con performance.now()</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Integridad Criptográfica</div>
+        <div class="kpi-value">SHA-256</div>
+        <div class="kpi-foot">Verificada sobre suite, XML JUnit y JSON</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>1. Matriz de Casos Certificados desde JUnit XML (junit_iso25010_v2.xml)</h2>
+        <input id="filtroCasos" class="search-box" type="search" placeholder="Filtrar por suite o caso de prueba..." />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Suite ISO/IEC 25010</th>
+            <th>Caso de Prueba Verificado</th>
+            <th class="num">Duración</th>
+            <th>Resultado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCasos">
+          
+            <tr data-suite="1. adecuación funcional (cp-func-01: lógica anti-solapamiento)" data-name="debe detectar solapamiento cuando una nueva reserva coincide en el horario activo">
+              <td class="mono muted">01</td>
+              <td><span class="suite-tag">1. Adecuación Funcional (CP-FUNC-01: Lógica Anti-Solapamiento)</span></td>
+              <td>Debe detectar solapamiento cuando una nueva reserva coincide en el horario activo</td>
+              <td class="mono num">1.2730 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="1. adecuación funcional (cp-func-01: lógica anti-solapamiento)" data-name="debe permitir reservas en horarios contiguos sin solapamiento">
+              <td class="mono muted">02</td>
+              <td><span class="suite-tag">1. Adecuación Funcional (CP-FUNC-01: Lógica Anti-Solapamiento)</span></td>
+              <td>Debe permitir reservas en horarios contiguos sin solapamiento</td>
+              <td class="mono num">0.1790 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="2. adecuación funcional (cp-func-02: cómputo matemático delta-t)" data-name="debe calcular exactamente 45 minutos como 0.75 horas dedicadas">
+              <td class="mono muted">03</td>
+              <td><span class="suite-tag">2. Adecuación Funcional (CP-FUNC-02: Cómputo Matemático Delta-T)</span></td>
+              <td>Debe calcular exactamente 45 minutos como 0.75 horas dedicadas</td>
+              <td class="mono num">0.2740 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="2. adecuación funcional (cp-func-02: cómputo matemático delta-t)" data-name="debe calcular exactamente 90 minutos como 1.50 horas dedicadas">
+              <td class="mono muted">04</td>
+              <td><span class="suite-tag">2. Adecuación Funcional (CP-FUNC-02: Cómputo Matemático Delta-T)</span></td>
+              <td>Debe calcular exactamente 90 minutos como 1.50 horas dedicadas</td>
+              <td class="mono num">0.1390 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="3. seguridad y protección de datos (cp-sec-01 y cp-sec-02)" data-name="debe generar hashes irreversibles con bcrypt factor 10 y validar contraseñas">
+              <td class="mono muted">05</td>
+              <td><span class="suite-tag">3. Seguridad y Protección de Datos (CP-SEC-01 y CP-SEC-02)</span></td>
+              <td>Debe generar hashes irreversibles con bcrypt factor 10 y validar contraseñas</td>
+              <td class="mono num">270.0560 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="3. seguridad y protección de datos (cp-sec-01 y cp-sec-02)" data-name="zod debe bloquear inyecciones o datos maliciosos en correos institucionales">
+              <td class="mono muted">06</td>
+              <td><span class="suite-tag">3. Seguridad y Protección de Datos (CP-SEC-01 y CP-SEC-02)</span></td>
+              <td>Zod debe bloquear inyecciones o datos maliciosos en correos institucionales</td>
+              <td class="mono num">1.8210 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="4. reglas de negocio de mantenimiento y calidad (cp-usa-02)" data-name="debe rechazar la reactivación de un implemento en taller si no incluye constancia técnica">
+              <td class="mono muted">07</td>
+              <td><span class="suite-tag">4. Reglas de Negocio de Mantenimiento y Calidad (CP-USA-02)</span></td>
+              <td>Debe rechazar la reactivación de un implemento en taller si no incluye constancia técnica</td>
+              <td class="mono num">0.7070 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="4. reglas de negocio de mantenimiento y calidad (cp-usa-02)" data-name="debe aprobar la reactivación cuando la constancia técnica está completa">
+              <td class="mono muted">08</td>
+              <td><span class="suite-tag">4. Reglas de Negocio de Mantenimiento y Calidad (CP-USA-02)</span></td>
+              <td>Debe aprobar la reactivación cuando la constancia técnica está completa</td>
+              <td class="mono num">0.1760 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="5. seguridad criptográfica qr dinámico v2.0 (cp-sec-03)" data-name="cp-sec-03: debe firmar tokens qr con hmac-sha256 y detectar adulteración o expiración">
+              <td class="mono muted">09</td>
+              <td><span class="suite-tag">5. Seguridad Criptográfica QR Dinámico v2.0 (CP-SEC-03)</span></td>
+              <td>CP-SEC-03: Debe firmar tokens QR con HMAC-SHA256 y detectar adulteración o expiración</td>
+              <td class="mono num">1.5870 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="6. integración institucional outlook/teams rfc 5545 (cp-int-01)" data-name="cp-int-01: debe generar archivo .ics válido bajo rfc 5545 con alarma preventiva valarm">
+              <td class="mono muted">10</td>
+              <td><span class="suite-tag">6. Integración Institucional Outlook/Teams RFC 5545 (CP-INT-01)</span></td>
+              <td>CP-INT-01: Debe generar archivo .ics válido bajo RFC 5545 con alarma preventiva VALARM</td>
+              <td class="mono num">0.6820 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="7. resiliencia offline-first en recintos subterráneos (cp-rel-02)" data-name="cp-rel-02: debe encolar lecturas qr en caché local y sincronizarlas al recuperar señal">
+              <td class="mono muted">11</td>
+              <td><span class="suite-tag">7. Resiliencia Offline-First en Recintos Subterráneos (CP-REL-02)</span></td>
+              <td>CP-REL-02: Debe encolar lecturas QR en caché local y sincronizarlas al recuperar señal</td>
+              <td class="mono num">1.6390 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+            <tr data-suite="8. integración de webhooks en tiempo real teams/telegram (cp-int-02)" data-name="cp-int-02: debe estructurar payload adaptive card para teams y metadata markdown para telegram en alertas sev-1">
+              <td class="mono muted">12</td>
+              <td><span class="suite-tag">8. Integración de Webhooks en Tiempo Real Teams/Telegram (CP-INT-02)</span></td>
+              <td>CP-INT-02: Debe estructurar payload Adaptive Card para Teams y metadata Markdown para Telegram en alertas SEV-1</td>
+              <td class="mono num">0.2650 ms</td>
+              <td><span class="badge-pass">PASS</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>2. Benchmark Empírico de Rendimiento Bajo Carga (benchmark_iso25010_v2.json)</h2>
+        <span class="muted">Fecha ejecución: 2026-11-23T22:48:33.217Z</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Escenario y Dimensión ISO/IEC 25010</th>
+            <th class="num">Operaciones</th>
+            <th class="num">Latencia Promedio</th>
+            <th class="num">Percentil 95 (p95)</th>
+            <th class="num">Duración Total</th>
+            <th class="num">Throughput</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td class="mono bold-navy">CP-FUNC-01</td>
+              <td>
+                <div class="scen-name">Verificación Anti-Solapamiento Horario</div>
+                <div class="scen-iso">Adecuación Funcional</div>
+              </td>
+              <td class="mono num">1,000</td>
+              <td class="mono num">0.001614 ms</td>
+              <td class="mono num">0.002100 ms</td>
+              <td class="mono num">1.8603 ms</td>
+              <td class="mono num bold-green">537,547.71 ops/s</td>
+            </tr>
+            <tr>
+              <td class="mono bold-navy">CP-SEC-03</td>
+              <td>
+                <div class="scen-name">Ciclo Firma + Verificación QR2 HMAC-SHA256 (timingSafeEqual)</div>
+                <div class="scen-iso">Seguridad Criptográfica</div>
+              </td>
+              <td class="mono num">1,000</td>
+              <td class="mono num">0.020780 ms</td>
+              <td class="mono num">0.031300 ms</td>
+              <td class="mono num">21.0936 ms</td>
+              <td class="mono num bold-green">47,407.74 ops/s</td>
+            </tr>
+            <tr>
+              <td class="mono bold-navy">CP-INT-01</td>
+              <td>
+                <div class="scen-name">Generación iCalendar RFC 5545 (.ics con VALARM -PT15M)</div>
+                <div class="scen-iso">Interoperabilidad</div>
+              </td>
+              <td class="mono num">500</td>
+              <td class="mono num">0.009543 ms</td>
+              <td class="mono num">0.010500 ms</td>
+              <td class="mono num">4.8831 ms</td>
+              <td class="mono num bold-green">102,393.97 ops/s</td>
+            </tr>
+            <tr>
+              <td class="mono bold-navy">CP-SEC-02</td>
+              <td>
+                <div class="scen-name">Bloqueo Zod contra Payloads de Inyección SQLi</div>
+                <div class="scen-iso">Seguridad (OWASP A03)</div>
+              </td>
+              <td class="mono num">1,000</td>
+              <td class="mono num">0.003100 ms</td>
+              <td class="mono num">0.003700 ms</td>
+              <td class="mono num">3.3179 ms</td>
+              <td class="mono num bold-green">301,395.46 ops/s</td>
+            </tr>
+        </tbody>
+      </table>
+
+      <div class="charts-grid">
+        <div class="chart-box">
+          <h3>Rendimiento Comparativo (Operaciones / Segundo)</h3>
+          
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-FUNC-01</strong> — Verificación Anti-Solapamiento Horario</span>
+                <span class="mono bold-navy">537,547.71 ops/s</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-navy" style="width: 100.00%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-SEC-03</strong> — Ciclo Firma + Verificación QR2 HMAC-SHA256 (timingSafeEqual)</span>
+                <span class="mono bold-navy">47,407.74 ops/s</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-navy" style="width: 8.82%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-INT-01</strong> — Generación iCalendar RFC 5545 (.ics con VALARM -PT15M)</span>
+                <span class="mono bold-navy">102,393.97 ops/s</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-navy" style="width: 19.05%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-SEC-02</strong> — Bloqueo Zod contra Payloads de Inyección SQLi</span>
+                <span class="mono bold-navy">301,395.46 ops/s</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-navy" style="width: 56.07%"></div>
+              </div>
+            </div>
+        </div>
+        <div class="chart-box">
+          <h3>Latencia Promedio y Percentil 95 (p95 en ms)</h3>
+          
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-FUNC-01</strong> (1,000 ops)</span>
+                <span class="mono">Prom: <strong>0.0016 ms</strong> | p95: <strong>0.0021 ms</strong></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-gold" style="width: 6.71%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-SEC-03</strong> (1,000 ops)</span>
+                <span class="mono">Prom: <strong>0.0208 ms</strong> | p95: <strong>0.0313 ms</strong></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-gold" style="width: 100.00%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-INT-01</strong> (500 ops)</span>
+                <span class="mono">Prom: <strong>0.0095 ms</strong> | p95: <strong>0.0105 ms</strong></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-gold" style="width: 33.55%"></div>
+              </div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-head">
+                <span><strong>CP-SEC-02</strong> (1,000 ops)</span>
+                <span class="mono">Prom: <strong>0.0031 ms</strong> | p95: <strong>0.0037 ms</strong></span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill bar-gold" style="width: 11.82%"></div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>3. Sello de Integridad Criptográfica SHA-256 para Auditoría</h2>
+      </div>
+      <div class="hash-grid">
+        <div class="hash-item">
+          <div>
+            <div class="bold-navy">objetos proyecto de titulo/tests/iso25010.test.mjs</div>
+            <div class="mono hash-code">3ba3ec992a30cc5d57e3dda36e10c67b1acbe8352b8ef2936a9c0466fd832d08</div>
+          </div>
+          <button class="btn-copy" onclick="copiarHash('3ba3ec992a30cc5d57e3dda36e10c67b1acbe8352b8ef2936a9c0466fd832d08', this)">Copiar SHA-256</button>
+        </div>
+        <div class="hash-item">
+          <div>
+            <div class="bold-navy">Fase 2/Evidencias Proyecto/04_Pruebas_Calidad_ISO25010/junit_iso25010_v2.xml</div>
+            <div class="mono hash-code">986116092af9c5138490562810c262f395b350eb2559db5307e590d246bff540</div>
+          </div>
+          <button class="btn-copy" onclick="copiarHash('986116092af9c5138490562810c262f395b350eb2559db5307e590d246bff540', this)">Copiar SHA-256</button>
+        </div>
+        <div class="hash-item">
+          <div>
+            <div class="bold-navy">Fase 2/Evidencias Proyecto/04_Pruebas_Calidad_ISO25010/benchmark_iso25010_v2.json</div>
+            <div class="mono hash-code">9bb84d433ffa5a5b6ce9f8195aa53c24b32c83c90c4e4a7167d5fbef7623f14a</div>
+          </div>
+          <button class="btn-copy" onclick="copiarHash('9bb84d433ffa5a5b6ce9f8195aa53c24b32c83c90c4e4a7167d5fbef7623f14a', this)">Copiar SHA-256</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Artefacto autocontenido generado a partir de ejecución real de pruebas automatizadas y benchmark Node.js (v24.11.1) • ASIGNATURA CAPSTONE (PTY4614 - 002D) • Benjamin Navarrete
+    </footer>
+  </main>
+
+  <script>
+    const input = document.getElementById('filtroCasos');
+    const rows = Array.from(document.querySelectorAll('#tablaCasos tr'));
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      rows.forEach((tr) => {
+        const match = !q || tr.dataset.suite.includes(q) || tr.dataset.name.includes(q);
+        tr.style.display = match ? '' : 'none';
+      });
+    });
+    function copiarHash(valor, btn) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(valor).then(() => {
+          const orig = btn.textContent;
+          btn.textContent = 'Copiado';
+          setTimeout(() => { btn.textContent = orig; }, 1500);
+        });
+      }
+    }
+  </script>
+</body>
+</html>

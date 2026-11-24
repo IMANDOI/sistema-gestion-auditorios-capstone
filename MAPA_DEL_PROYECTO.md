@@ -1,7 +1,7 @@
 # MAPA MAESTRO DEL PROYECTO (DIRECTORIO Y GUÍA VISUAL)
 ## Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios
-### Portafolio de Título (PTY4614 / APT122) — Escuela de Informática y Telecomunicaciones — Duoc UC
-**Estudiante:** Benjamín Navarrete  
+### Portafolio de Título (PTY4614 - 002D) — Escuela de Informática y Telecomunicaciones — Duoc UC
+**Estudiante:** Benjamin Navarrete  
 **Estado:** Espacio Organizado, Optimizado y Libre de Duplicados (100% Limpio)
 
 ---
@@ -33,16 +33,16 @@ PROYECTO DE TITULO/
 │
 ├── 📁 Fase 1/                              --> ENTREGABLES OFICIALES FASE 1 (Definición y Arquitectura)
 │   ├── Evidencias Grupales/
-│   │   ├── 1.5_GuiaEstudiante_Fase 1_Definicion Proyecto APT_Benjamín_Navarrete.docx
+│   │   ├── 1.5_GuiaEstudiante_Fase 1_Definicion Proyecto APT_Benjamin_Navarrete.docx
 │   │   ├── especificacion_requerimientos.md (SRS bajo estándar IEEE 830)
 │   │   ├── PLANILLA DE EVALUACIÓN FASE 1.xlsx
 │   │   └── Presentación Proyecto.pptx
 │   └── Evidencias Individuales/
-│       └── Navarrete_Benjamín_1.1_APT122_AutoevaluacionCompetenciasFase1.docx
+│       └── Navarrete_Benjamin_1.1_APT122_AutoevaluacionCompetenciasFase1.docx
 │
 ├── 📁 Fase 2/                              --> ENTREGABLES OFICIALES FASE 2 (Desarrollo y Avance)
 │   ├── Evidencias Grupales/
-│   │   ├── 2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamín_Navarrete.docx ⭐ [ENTREGABLE CORREGIDO CON T01-T12]
+│   │   ├── 2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamin_Navarrete.docx ⭐ [ENTREGABLE CORREGIDO CON T01-T12]
 │   │   ├── MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.docx ⭐ [MANUAL OFICIAL CON 25 PREGUNTAS Y BASE DE DATOS]
 │   │   ├── MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.md   (Versión de lectura rápida en editor)
 │   │   ├── capturas_evidencia/             (Las 13 capturas PNG de alta resolución del Anexo A)
@@ -81,7 +81,7 @@ PROYECTO DE TITULO/
 | Si necesitas... | Abre únicamente este archivo / carpeta |
 | :--- | :--- |
 | **Estudiar para la defensa, examen de título o preguntas sorpresa de profesores:** | 📄 `Fase 2/Evidencias Grupales/MANUAL_MAESTRO_DE_ESTUDIO_Y_DEFENSA_CAPSTONE.docx` |
-| **Entregar o revisar el informe oficial de la Fase 2 (Corregido y blindado para nota 7.0):** | 📄 `Fase 2/Evidencias Grupales/2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamín_Navarrete.docx` |
+| **Entregar o revisar el informe oficial de la Fase 2 (Corregido y blindado para nota 7.0):** | 📄 `Fase 2/Evidencias Grupales/2.4_GuiaEstudiante_Fase 2_DesarrolloProyecto APT_Benjamin_Navarrete.docx` |
 | **Revisar las evidencias de pruebas de calidad ISO/IEC 25010 para la Fase 3:** | 📄 `Fase 3/Evidencias Grupales/PLAN_DE_PRUEBAS_Y_CERTIFICACION_CALIDAD_ISO25010.docx` |
 | **Ver el código fuente, componentes o modificar la web:** | 📁 `objetos proyecto de titulo/src/` |
 | **Ver las tablas de la base de datos:** | 📄 `objetos proyecto de titulo/prisma/schema.prisma` |

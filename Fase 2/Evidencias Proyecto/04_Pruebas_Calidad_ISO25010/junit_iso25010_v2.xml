@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite name="Batería de Pruebas Automatizadas ISO/IEC 25010 - Capstone Duoc UC" time="0.282042" disabled="0" errors="0" tests="8" failures="0" skipped="0" hostname="PC_MANDO">
+		<testsuite name="1. Adecuación Funcional (CP-FUNC-01: Lógica Anti-Solapamiento)" time="0.002464" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="Debe detectar solapamiento cuando una nueva reserva coincide en el horario activo" time="0.001273" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+			<testcase name="Debe permitir reservas en horarios contiguos sin solapamiento" time="0.000179" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="2. Adecuación Funcional (CP-FUNC-02: Cómputo Matemático Delta-T)" time="0.000632" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="Debe calcular exactamente 45 minutos como 0.75 horas dedicadas" time="0.000274" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+			<testcase name="Debe calcular exactamente 90 minutos como 1.50 horas dedicadas" time="0.000139" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="3. Seguridad y Protección de Datos (CP-SEC-01 y CP-SEC-02)" time="0.272115" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="Debe generar hashes irreversibles con bcrypt factor 10 y validar contraseñas" time="0.270056" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+			<testcase name="Zod debe bloquear inyecciones o datos maliciosos en correos institucionales" time="0.001821" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="4. Reglas de Negocio de Mantenimiento y Calidad (CP-USA-02)" time="0.001062" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="Debe rechazar la reactivación de un implemento en taller si no incluye constancia técnica" time="0.000707" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+			<testcase name="Debe aprobar la reactivación cuando la constancia técnica está completa" time="0.000176" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="5. Seguridad Criptográfica QR Dinámico v2.0 (CP-SEC-03)" time="0.001690" disabled="0" errors="0" tests="1" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="CP-SEC-03: Debe firmar tokens QR con HMAC-SHA256 y detectar adulteración o expiración" time="0.001587" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="6. Integración Institucional Outlook/Teams RFC 5545 (CP-INT-01)" time="0.000775" disabled="0" errors="0" tests="1" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="CP-INT-01: Debe generar archivo .ics válido bajo RFC 5545 con alarma preventiva VALARM" time="0.000682" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="7. Resiliencia Offline-First en Recintos Subterráneos (CP-REL-02)" time="0.001736" disabled="0" errors="0" tests="1" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="CP-REL-02: Debe encolar lecturas QR en caché local y sincronizarlas al recuperar señal" time="0.001639" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+		<testsuite name="8. Integración de Webhooks en Tiempo Real Teams/Telegram (CP-INT-02)" time="0.000343" disabled="0" errors="0" tests="1" failures="0" skipped="0" hostname="PC_MANDO">
+			<testcase name="CP-INT-02: Debe estructurar payload Adaptive Card para Teams y metadata Markdown para Telegram en alertas SEV-1" time="0.000265" classname="test" file="C:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\tests\iso25010.test.mjs"/>
+		</testsuite>
+	</testsuite>
+	<!-- tests 12 -->
+	<!-- suites 9 -->
+	<!-- pass 12 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 560.0796 -->
+</testsuites>

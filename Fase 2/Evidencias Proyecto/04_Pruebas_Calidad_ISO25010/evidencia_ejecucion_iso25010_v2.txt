@@ -1,0 +1,99 @@
+========================================================================
+EVIDENCIA EMPÍRICA DE CERTIFICACIÓN ISO/IEC 25010 — ARQUITECTURA v2.0
+Fecha y Hora de Ejecución: 2026-11-13 01:13:00 (UTC-3)
+Asignatura: ASIGNATURA CAPSTONE (PTY4614 - 002D)
+Estudiante Responsable: Benjamin Navarrete
+========================================================================
+
+[1] RESULTADO DE: node --test tests/iso25010.test.mjs
+(node:18888) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///c:/Users/MAANDO/Desktop/PROYECTO%20DE%20TITULO/objetos%20proyecto%20de%20titulo/src/lib/qr-security.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to c:\Users\MAANDO\Desktop\PROYECTO DE TITULO\objetos proyecto de titulo\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Batería de Pruebas Automatizadas ISO/IEC 25010 - Capstone Duoc UC
+  ▶ 1. Adecuación Funcional (CP-FUNC-01: Lógica Anti-Solapamiento)
+    ✔ Debe detectar solapamiento cuando una nueva reserva coincide en el horario activo (17.2665ms)
+    ✔ Debe permitir reservas en horarios contiguos sin solapamiento (2.0837ms)
+  ✔ 1. Adecuación Funcional (CP-FUNC-01: Lógica Anti-Solapamiento) (21.7662ms)
+  ▶ 2. Adecuación Funcional (CP-FUNC-02: Cómputo Matemático Delta-T)
+    ✔ Debe calcular exactamente 45 minutos como 0.75 horas dedicadas (0.8714ms)
+    ✔ Debe calcular exactamente 90 minutos como 1.50 horas dedicadas (1.0787ms)
+  ✔ 2. Adecuación Funcional (CP-FUNC-02: Cómputo Matemático Delta-T) (2.5054ms)
+  ▶ 3. Seguridad y Protección de Datos (CP-SEC-01 y CP-SEC-02)
+    ✔ Debe generar hashes irreversibles con bcrypt factor 10 y validar contraseñas (1303.8776ms)
+    ✔ Zod debe bloquear inyecciones o datos maliciosos en correos institucionales (8.0388ms)
+  ✔ 3. Seguridad y Protección de Datos (CP-SEC-01 y CP-SEC-02) (1312.6112ms)
+  ▶ 4. Reglas de Negocio de Mantenimiento y Calidad (CP-USA-02)
+    ✔ Debe rechazar la reactivación de un implemento en taller si no incluye constancia técnica (1.4876ms)
+    ✔ Debe aprobar la reactivación cuando la constancia técnica está completa (0.302ms)
+  ✔ 4. Reglas de Negocio de Mantenimiento y Calidad (CP-USA-02) (2.1153ms)
+  ▶ 5. Seguridad Criptográfica QR Dinámico v2.0 (CP-SEC-03)
+    ✔ CP-SEC-03: Debe firmar tokens QR con HMAC-SHA256 y detectar adulteración o expiración (5.3156ms)
+  ✔ 5. Seguridad Criptográfica QR Dinámico v2.0 (CP-SEC-03) (5.4845ms)
+  ▶ 6. Integración Institucional Outlook/Teams RFC 5545 (CP-INT-01)
+    ✔ CP-INT-01: Debe generar archivo .ics válido bajo RFC 5545 con alarma preventiva VALARM (2.7761ms)
+  ✔ 6. Integración Institucional Outlook/Teams RFC 5545 (CP-INT-01) (3.1023ms)
+  ▶ 7. Resiliencia Offline-First en Recintos Subterráneos (CP-REL-02)
+    ✔ CP-REL-02: Debe encolar lecturas QR en caché local y sincronizarlas al recuperar señal (3.2026ms)
+  ✔ 7. Resiliencia Offline-First en Recintos Subterráneos (CP-REL-02) (3.6344ms)
+  ▶ 8. Integración de Webhooks en Tiempo Real Teams/Telegram (CP-INT-02)
+    ✔ CP-INT-02: Debe estructurar payload Adaptive Card para Teams y metadata Markdown para Telegram en alertas SEV-1 (1.3024ms)
+  ✔ 8. Integración de Webhooks en Tiempo Real Teams/Telegram (CP-INT-02) (1.4729ms)
+✔ Batería de Pruebas Automatizadas ISO/IEC 25010 - Capstone Duoc UC (1356.266ms)
+ℹ tests 12
+ℹ suites 9
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2654.1757
+
+[2] RESULTADO DE: npx.cmd tsc --noEmit (exit=0)
+0 errores de compilación TypeScript.
+
+[3] RESULTADO DE: npm.cmd run build (exit=0)
+> sistema-gestion-auditorios-capstone@1.0.0 build
+> prisma generate && next build
+
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 302ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+   ▲ Next.js 15.1.12
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/9) ...
+   Generating static pages (2/9) 
+   Generating static pages (4/9) 
+   Generating static pages (6/9) 
+ ✓ Generating static pages (9/9)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    169 B           110 kB
+├ ○ /_not-found                          979 B           106 kB
+├ ○ /admin                               24.2 kB         186 kB
+├ ○ /docente                             18.4 kB         124 kB
+├ ○ /encargado                           4.14 kB         110 kB
+├ ○ /login                               170 B           110 kB
+└ ○ /tecnico                             6.65 kB         168 kB
++ First Load JS shared by all            106 kB
+  ├ chunks/4bd1b696-98e9308c101e0794.js  52.9 kB
+  ├ chunks/517-7073d4f23505e6e7.js       50.6 kB
+  └ other shared chunks (total)          1.98 kB
+
+
+○  (Static)  prerendered as static content
+
+
+Environment variables loaded from .env

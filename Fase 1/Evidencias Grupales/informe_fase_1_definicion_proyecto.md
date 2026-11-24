@@ -5,7 +5,7 @@
 ---
 
 **Datos del Estudiante y del Proyecto:**
-* **Nombre del Estudiante:** Benjamín Abraham Navarrete Hernández
+* **Nombre del Estudiante:** Benjamin Abraham Navarrete Hernández
 * **RUT:** 21.252.605-3
 * **Carrera:** Ingeniería en Informática / Análisis Programador
 * **Sede:** Sede La Florida
@@ -69,7 +69,7 @@ El desarrollo se realiza sobre Next.js 15, Prisma ORM y PostgreSQL serverless en
 
 | Campo | Detalle Institucional / Académico |
 | :--- | :--- |
-| **Estudiante Postulante** | Benjamín Abraham Navarrete Hernández |
+| **Estudiante Postulante** | Benjamin Abraham Navarrete Hernández |
 | **RUT** | 21.252.605-3 |
 | **Carrera** | Ingeniería en Informática / Análisis Programador |
 | **Asignatura** | Proyecto Capstone (APT122 / PTY4614) |

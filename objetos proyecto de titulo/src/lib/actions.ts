@@ -1,0 +1,1564 @@
+"use server";
+
+import { prisma } from "./prisma";
+import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
+import { generateSignedQrToken, verifySignedQrToken } from "./qr-security";
+
+export async function getDashboardData() {
+  const [
+    reservas,
+    equipamientos,
+    auditorios,
+    users,
+    auditorias,
+    suscripciones,
+    mantenimientos,
+    horasTIAgg,
+    encuestasAgg,
+  ] = await Promise.all([
+    prisma.reserva.findMany({
+      take: 250,
+      include: {
+        user: { select: { id: true, name: true, email: true, department: true } },
+        auditorio: { select: { id: true, name: true, location: true } },
+        equipamientos: {
+          include: { equipamiento: true },
+        },
+        horasTI: true,
+        encuesta: true,
+      },
+      orderBy: { startTime: "asc" },
+    }),
+    prisma.equipamiento.findMany({
+      orderBy: { category: "asc" },
+    }),
+    prisma.auditorio.findMany({
+      orderBy: { name: "asc" },
+    }),
+    prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        phone: true,
+        priorityScore: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.registroAuditoria.findMany({
+      include: { user: { select: { name: true, role: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 25,
+    }),
+    prisma.suscripcionArea.findMany({
+      where: { isActive: true },
+    }),
+    prisma.registroMantenimiento.findMany({
+      include: {
+        auditorio: { select: { id: true, name: true } },
+        equipamiento: { select: { id: true, name: true, category: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.registroHorasTI.aggregate({
+      _sum: { hoursDecimal: true },
+    }),
+    prisma.encuestaSatisfaccion.aggregate({
+      _avg: {
+        ratingOverall: true,
+        ratingEquipment: true,
+        ratingSupport: true,
+      },
+      _count: { _all: true },
+    }),
+  ]);
+
+  // Compute operational KPIs
+  const totalReservas = reservas.length;
+  const reservasActivas = reservas.filter((r) => r.status === "APPROVED" || r.status === "CHECKED_IN").length;
+  const reservasPendientes = reservas.filter((r) => r.status === "PENDING").length;
+  const totalNoShows = reservas.filter((r) => r.status === "NO_SHOW").length;
+
+  // Real IT hours computation via native DB aggregation (with safe fallback)
+  let totalHorasTI = horasTIAgg?._sum?.hoursDecimal ?? 0;
+  if (totalHorasTI === 0 && reservas.length > 0) {
+    reservas.forEach((r) => {
+      r.horasTI.forEach((h) => {
+        totalHorasTI += h.hoursDecimal;
+      });
+    });
+  }
+
+  // Calculate estimated saved hours (each QR check-in saves ~45 min of idle technician waiting)
+  const completedCheckins = reservas.filter((r) => r.checkInTime !== null).length;
+  const horasTIAhorradas = parseFloat((completedCheckins * 0.75).toFixed(1));
+
+  // Compute average satisfaction rating (via native DB aggregation) & NPS
+  const encuestas = reservas.map((r) => r.encuesta).filter(Boolean);
+  let promoters = 0;
+  let detractors = 0;
+
+  encuestas.forEach((e) => {
+    if (e) {
+      if (e.npsCategory === "PROMOTER") promoters++;
+      if (e.npsCategory === "DETRACTOR") detractors++;
+    }
+  });
+
+  const aggCount = encuestasAgg?._count?._all ?? 0;
+  const calificacionPromedio =
+    aggCount > 0
+      ? parseFloat(
+          (
+            ((encuestasAgg._avg.ratingOverall ?? 5) +
+              (encuestasAgg._avg.ratingEquipment ?? 5) +
+              (encuestasAgg._avg.ratingSupport ?? 5)) /
+            3
+          ).toFixed(1)
+        )
+      : 5.0;
+  const npsScore = encuestas.length > 0 ? Math.round(((promoters - detractors) / encuestas.length) * 100) : 100;
+
+  // Occupancy rate estimate (based on 40 weekly operational hours)
+  const tasaOcupacion = Math.min(100, Math.round((totalReservas * 2.5 / 40) * 100));
+
+  // Maintenance & Health Analytics
+  const totalMantenimientos = mantenimientos.length;
+  const activosEnMantencion = mantenimientos.filter((m) => m.status !== "RESUELTO").length;
+  const resueltos = mantenimientos.filter((m) => m.status === "RESUELTO").length;
+
+  const totalEquipos = equipamientos.length;
+  const equiposOperativos = equipamientos.filter((eq) => eq.status === "AVAILABLE" || eq.status === "IN_USE").length;
+  const tasaOperatividadEquipos = totalEquipos > 0 ? Math.round((equiposOperativos / totalEquipos) * 100) : 100;
+
+  const auditorioActual = auditorios[0];
+  const auditorioStatus = (auditorioActual?.status as any) || (auditorioActual?.isActive ? "OPERATIONAL" : "MAINTENANCE");
+
+  let downtimeHorasAcumuladas = 0;
+  let totalDuracionResueltosHoras = 0;
+  mantenimientos.forEach((m) => {
+    const start = new Date(m.startDate).getTime();
+    const end = m.resolvedDate ? new Date(m.resolvedDate).getTime() : Date.now();
+    const diffHours = Math.max(0.5, (end - start) / (1000 * 60 * 60));
+    downtimeHorasAcumuladas += diffHours;
+    if (m.status === "RESUELTO") {
+      totalDuracionResueltosHoras += diffHours;
+    }
+  });
+
+  const mttrHorasPromedio = resueltos > 0 ? parseFloat((totalDuracionResueltosHoras / resueltos).toFixed(1)) : 4.5;
+
+  // Breakdown by Type
+  const tiposCounts: Record<string, number> = {
+    PREVENTIVO: 0,
+    CORRECTIVO: 0,
+    CALIBRACION: 0,
+    MEJORA: 0,
+    DANIO_REPORTE: 0,
+  };
+  mantenimientos.forEach((m) => {
+    tiposCounts[m.type] = (tiposCounts[m.type] || 0) + 1;
+  });
+  const distribucionPorTipo = Object.entries(tiposCounts).map(([tipo, cantidad]) => ({
+    tipo,
+    cantidad,
+  }));
+
+  // Breakdown by Category
+  const categoriasMap: Record<string, { total: number; enMantencion: number }> = {
+    AUDIO: { total: 0, enMantencion: 0 },
+    PROJECTION: { total: 0, enMantencion: 0 },
+    COMPUTING: { total: 0, enMantencion: 0 },
+    HVAC: { total: 0, enMantencion: 0 },
+    FURNITURE: { total: 0, enMantencion: 0 },
+    OTHER: { total: 0, enMantencion: 0 },
+  };
+  equipamientos.forEach((eq) => {
+    const cat = eq.category || "OTHER";
+    if (!categoriasMap[cat]) categoriasMap[cat] = { total: 0, enMantencion: 0 };
+    categoriasMap[cat].total += eq.totalQty;
+    if (eq.status === "MAINTENANCE") {
+      categoriasMap[cat].enMantencion += eq.totalQty;
+    }
+  });
+  const distribucionPorCategoria = Object.entries(categoriasMap).map(([categoria, vals]) => ({
+    categoria,
+    total: vals.total,
+    enMantencion: vals.enMantencion,
+  }));
+
+  // Breakdown by Severity
+  const severidadesMap: Record<string, number> = {
+    BAJA: 0,
+    MEDIA: 0,
+    ALTA: 0,
+    CRITICA: 0,
+  };
+  mantenimientos.forEach((m) => {
+    severidadesMap[m.severity] = (severidadesMap[m.severity] || 0) + 1;
+  });
+  const incidentesPorSeveridad = Object.entries(severidadesMap).map(([severidad, cantidad]) => ({
+    severidad,
+    cantidad,
+  }));
+
+  return {
+    reservas: JSON.parse(JSON.stringify(reservas)),
+    equipamientos: JSON.parse(JSON.stringify(equipamientos)),
+    auditorios: JSON.parse(JSON.stringify(auditorios)),
+    users: JSON.parse(JSON.stringify(users)),
+    auditorias: JSON.parse(JSON.stringify(auditorias)),
+    suscripciones: JSON.parse(JSON.stringify(suscripciones)),
+    mantenimientos: JSON.parse(JSON.stringify(mantenimientos)),
+    metrics: {
+      totalReservas,
+      reservasActivas,
+      reservasPendientes,
+      tasaOcupacion,
+      horasTIUtilizadas: parseFloat(totalHorasTI.toFixed(1)),
+      horasTIAhorradas,
+      calificacionPromedio,
+      npsScore,
+      totalNoShows,
+    },
+    maintenanceMetrics: {
+      totalMantenimientos,
+      activosEnMantencion,
+      resueltos,
+      tasaOperatividadEquipos,
+      auditorioStatus,
+      downtimeHorasAcumuladas: parseFloat(downtimeHorasAcumuladas.toFixed(1)),
+      mttrHorasPromedio,
+      distribucionPorTipo,
+      distribucionPorCategoria,
+      incidentesPorSeveridad,
+    },
+  };
+}
+
+export async function createReservationAction(formData: {
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  attendeesEstimate: number;
+  requiresCleaning: boolean;
+  requiresGuardia: boolean;
+  notes?: string;
+  userId: string;
+  auditorioId: string;
+  selectedEquipments: { equipamientoId: string; quantity: number }[];
+}) {
+  const start = new Date(formData.startTime);
+  const end = new Date(formData.endTime);
+
+  if (start >= end) {
+    return { success: false, error: "La hora de término debe ser posterior a la de inicio." };
+  }
+
+  // Anti-collision transactional check (RF-05) wrapped in $transaction to prevent race conditions
+  // Conflicto si: max(start1, start2) < min(end1, end2)
+  const txResult = await prisma.$transaction(async (tx) => {
+    const overlapping = await tx.reserva.findFirst({
+      where: {
+        auditorioId: formData.auditorioId,
+        status: { in: ["APPROVED", "CHECKED_IN"] },
+        AND: [
+          { startTime: { lt: end } },
+          { endTime: { gt: start } },
+        ],
+      },
+    });
+
+    if (overlapping) {
+      return {
+        success: false as const,
+        error: `Conflicto de horario: El auditorio ya tiene una reserva confirmada ("${overlapping.title}") en el bloque solicitado.`,
+      };
+    }
+
+    const user = await tx.user.findUnique({ where: { id: formData.userId } });
+    const priority = user?.priorityScore ?? 100;
+
+    const nuevaReserva = await tx.reserva.create({
+      data: {
+        title: formData.title,
+        description: formData.description,
+        startTime: start,
+        endTime: end,
+        status: "PENDING",
+        attendeesEstimate: Number(formData.attendeesEstimate),
+        requiresCleaning: formData.requiresCleaning,
+        requiresGuardia: formData.requiresGuardia,
+        notes: formData.notes,
+        priorityScoreApplied: priority,
+        userId: formData.userId,
+        auditorioId: formData.auditorioId,
+        equipamientos: {
+          create: formData.selectedEquipments.map((eq) => ({
+            equipamientoId: eq.equipamientoId,
+            quantity: eq.quantity,
+            delivered: false,
+            returned: false,
+          })),
+        },
+      },
+    });
+
+    await tx.registroAuditoria.create({
+      data: {
+        action: "SOLICITUD_CREADA",
+        entity: "Reserva",
+        entityId: nuevaReserva.id,
+        userId: formData.userId,
+        ipAddress: "127.0.0.1",
+        details: `Solicitud "${formData.title}" ingresada para ${start.toLocaleString("es-CL")}`,
+      },
+    });
+
+    return { success: true as const, reservaId: nuevaReserva.id };
+  });
+
+  if (!txResult.success) {
+    return txResult;
+  }
+
+  revalidatePath("/");
+  return { success: true, reservaId: txResult.reservaId };
+}
+
+export async function approveReservationAction(reservaId: string, reviewerId: string) {
+  const existing = await prisma.reserva.findUnique({
+    where: { id: reservaId },
+  });
+
+  if (!existing) {
+    return { success: false, error: "La reserva no existe." };
+  }
+
+  // Generate dynamic cryptographic QR token signed with HMAC-SHA256
+  const qrToken = generateSignedQrToken(
+    existing.id,
+    existing.auditorioId,
+    existing.startTime,
+    existing.endTime
+  );
+
+  await prisma.reserva.update({
+    where: { id: reservaId },
+    data: {
+      status: "APPROVED",
+      qrToken,
+      reviewedBy: reviewerId,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "RESERVA_APROBADA",
+      entity: "Reserva",
+      entityId: reservaId,
+      userId: reviewerId,
+      ipAddress: "127.0.0.1",
+      details: `Reserva aprobada con token QR firmado HMAC-SHA256 emitido: ${qrToken}`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, qrToken };
+}
+
+export async function rejectReservationAction(reservaId: string, reviewerId: string, reason: string) {
+  await prisma.reserva.update({
+    where: { id: reservaId },
+    data: {
+      status: "REJECTED",
+      rejectionReason: reason,
+      reviewedBy: reviewerId,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "RESERVA_RECHAZADA",
+      entity: "Reserva",
+      entityId: reservaId,
+      userId: reviewerId,
+      ipAddress: "127.0.0.1",
+      details: `Reserva rechazada por: ${reason}`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function updateReservationScheduleAction(
+  reservaId: string,
+  adminUserId: string,
+  data: {
+    title: string;
+    startTime: string;
+    endTime: string;
+    attendeesEstimate: number;
+    notes?: string;
+    confirmSecurity: boolean;
+  }
+) {
+  if (!data.confirmSecurity) {
+    return {
+      success: false,
+      error: "Debe confirmar explícitamente el cambio de horario por motivos de seguridad.",
+    };
+  }
+
+  const start = new Date(data.startTime);
+  const end = new Date(data.endTime);
+
+  if (start >= end) {
+    return {
+      success: false,
+      error: "La hora de término debe ser posterior a la hora de inicio.",
+    };
+  }
+
+  const txResult = await prisma.$transaction(async (tx) => {
+    const current = await tx.reserva.findUnique({
+      where: { id: reservaId },
+    });
+
+    if (!current) {
+      return { success: false as const, error: "La reserva no existe." };
+    }
+
+    // Anti-collision check against OTHER approved/in-progress reservations
+    const overlapping = await tx.reserva.findFirst({
+      where: {
+        id: { not: reservaId },
+        auditorioId: current.auditorioId,
+        status: { in: ["APPROVED", "CHECKED_IN"] },
+        AND: [
+          { startTime: { lt: end } },
+          { endTime: { gt: start } },
+        ],
+      },
+    });
+
+    if (overlapping) {
+      return {
+        success: false as const,
+        error: `Conflicto de horario: El nuevo bloque se solapa con la reserva confirmada "${overlapping.title}".`,
+      };
+    }
+
+    const oldSchedule = `${new Date(current.startTime).toLocaleString("es-CL")} - ${new Date(current.endTime).toLocaleTimeString("es-CL")}`;
+    const newSchedule = `${start.toLocaleString("es-CL")} - ${end.toLocaleTimeString("es-CL")}`;
+
+    const updatedQrToken =
+      current.status === "APPROVED"
+        ? generateSignedQrToken(current.id, current.auditorioId, start, end)
+        : current.qrToken;
+
+    const updated = await tx.reserva.update({
+      where: { id: reservaId },
+      data: {
+        title: data.title.trim(),
+        startTime: start,
+        endTime: end,
+        attendeesEstimate: Number(data.attendeesEstimate),
+        notes: data.notes,
+        qrToken: updatedQrToken,
+      },
+    });
+
+    // Log in immutable audit trail
+    await tx.registroAuditoria.create({
+      data: {
+        action: "HORARIO_MODIFICADO_ADMIN",
+        entity: "Reserva",
+        entityId: reservaId,
+        userId: adminUserId,
+        ipAddress: "127.0.0.1",
+        details: `Horario modificado por Administrador para "${data.title}". Anterior: [${oldSchedule}] -> Nuevo: [${newSchedule}]`,
+      },
+    });
+
+    return { success: true as const, reserva: updated };
+  });
+
+  if (!txResult.success) {
+    return txResult;
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, reserva: txResult.reserva };
+}
+
+
+export async function processCheckInAction(qrToken: string, tecnicoId: string) {
+  const verification = verifySignedQrToken(qrToken);
+  if (!verification.valid) {
+    return {
+      success: false,
+      error: verification.reason || "Código QR no válido o adulterado.",
+    };
+  }
+
+  const reserva = await prisma.reserva.findFirst({
+    where: {
+      qrToken: verification.cleanToken,
+      status: "APPROVED",
+    },
+    include: { equipamientos: { include: { equipamiento: true } } },
+  });
+
+  if (!reserva) {
+    return {
+      success: false,
+      error: "Código QR no válido, no aprobado o ya utilizado anteriormente.",
+    };
+  }
+
+  const checkInTime = new Date();
+
+  await prisma.reserva.update({
+    where: { id: reserva.id },
+    data: {
+      status: "CHECKED_IN",
+      checkInTime,
+      checkedInBy: tecnicoId,
+    },
+  });
+
+  // Mark requested equipment as delivered
+  await prisma.reservaEquipamiento.updateMany({
+    where: { reservaId: reserva.id },
+    data: { delivered: true },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "CHECK_IN_VALIDADO",
+      entity: "Reserva",
+      entityId: reserva.id,
+      userId: tecnicoId,
+      ipAddress: "127.0.0.1",
+      details: `Check-in validado en sitio en < 30 seg. Inicio de soporte técnico: ${checkInTime.toLocaleTimeString("es-CL")}`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, reservaTitle: reserva.title, checkInTime };
+}
+
+export async function processCheckOutAction(
+  reservaId: string,
+  tecnicoId: string,
+  notes?: string
+) {
+  const reserva = await prisma.reserva.findUnique({
+    where: { id: reservaId },
+    include: { horasTI: true },
+  });
+
+  if (!reserva || !reserva.checkInTime) {
+    return { success: false, error: "La reserva no tiene un Check-in registrado previamente." };
+  }
+
+  const checkoutTime = new Date();
+  const diffMs = checkoutTime.getTime() - new Date(reserva.checkInTime).getTime();
+  const minutes = Math.max(15, Math.round(diffMs / (1000 * 60)));
+  const hoursDecimal = parseFloat((minutes / 60).toFixed(2));
+
+  await prisma.reserva.update({
+    where: { id: reservaId },
+    data: {
+      status: "CHECKED_OUT",
+      checkoutTime,
+      checkedOutBy: tecnicoId,
+    },
+  });
+
+  // Record exact IT hours consumed
+  await prisma.registroHorasTI.create({
+    data: {
+      reservaId,
+      tecnicoId,
+      minutesDuration: minutes,
+      hoursDecimal,
+      notes: notes || "Check-out completado con devolución conforme de hardware.",
+    },
+  });
+
+  // Mark equipment as returned
+  await prisma.reservaEquipamiento.updateMany({
+    where: { reservaId },
+    data: { returned: true },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "CHECK_OUT_COMPLETADO",
+      entity: "Reserva",
+      entityId: reservaId,
+      userId: tecnicoId,
+      ipAddress: "127.0.0.1",
+      details: `Check-out registrado. Horas hombre TI utilizadas computadas: ${hoursDecimal} hrs (${minutes} min).`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, hoursDecimal, minutes };
+}
+
+export async function submitFeedbackAction(
+  reservaId: string,
+  ratings: {
+    overall: number;
+    equipment: number;
+    support: number;
+    comment?: string;
+  }
+) {
+  const avg = (ratings.overall + ratings.equipment + ratings.support) / 3;
+  let npsCategory = "PASSIVE";
+  if (avg >= 4.5) npsCategory = "PROMOTER";
+  else if (avg <= 3.0) npsCategory = "DETRACTOR";
+
+  await prisma.encuestaSatisfaccion.create({
+    data: {
+      reservaId,
+      ratingOverall: ratings.overall,
+      ratingEquipment: ratings.equipment,
+      ratingSupport: ratings.support,
+      feedbackComment: ratings.comment,
+      npsCategory,
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "ENCUESTA_RECIBIDA",
+      entity: "Reserva",
+      entityId: reservaId,
+      ipAddress: "127.0.0.1",
+      details: `Encuesta post-evento: Promedio ${avg.toFixed(1)} estrellas (${npsCategory}).`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function toggleEquipmentStatusAction(
+  equipamientoId: string,
+  newStatus: "AVAILABLE" | "IN_USE" | "MAINTENANCE" | "DECOMMISSIONED",
+  reason?: string,
+  adminUserId?: string
+) {
+  const eq = await prisma.equipamiento.findUnique({ where: { id: equipamientoId } });
+  if (!eq) return { success: false, error: "Equipo no encontrado." };
+
+  await prisma.equipamiento.update({
+    where: { id: equipamientoId },
+    data: {
+      status: newStatus,
+      availableQty: newStatus === "AVAILABLE" ? eq.totalQty : 0,
+    },
+  });
+
+  if (newStatus === "MAINTENANCE") {
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId,
+        title: `Intervención de Mantenimiento - ${eq.name}`,
+        description: reason?.trim() || `Equipo marcado en mantenimiento preventivo/correctivo por administración.`,
+        severity: "MEDIA",
+        status: "EN_MANTENCION",
+        reportedBy: "Administración / TI",
+        technicianAssigned: "Soporte Audiovisual",
+        startDate: new Date(),
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "EQUIPAMIENTO_EN_MANTENCION",
+        entity: "Equipamiento",
+        entityId: equipamientoId,
+        userId: adminUserId || null,
+        ipAddress: "127.0.0.1",
+        details: `Equipo ${eq.name} puesto en MANTENIMIENTO. Razón: ${reason?.trim() || "Revisión técnica"}`,
+      },
+    });
+  } else if (newStatus === "AVAILABLE") {
+    // If there were any active maintenances for this equipment, mark them as resolved
+    await prisma.registroMantenimiento.updateMany({
+      where: { equipamientoId, status: { not: "RESUELTO" } },
+      data: {
+        status: "RESUELTO",
+        resolvedDate: new Date(),
+        resolutionNotes: "Retorno a disponibilidad operacional confirmado por el Administrador.",
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "EQUIPAMIENTO_DISPONIBLE",
+        entity: "Equipamiento",
+        entityId: equipamientoId,
+        userId: adminUserId || null,
+        ipAddress: "127.0.0.1",
+        details: `Equipo ${eq.name} restaurado a DISPONIBLE (Stock: ${eq.totalQty}).`,
+      },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/tecnico");
+  return { success: true };
+}
+
+export async function createMantenimientoAction(formData: {
+  targetType: "AUDITORIO" | "EQUIPAMIENTO";
+  targetId: string;
+  type: "PREVENTIVO" | "CORRECTIVO" | "CALIBRACION" | "MEJORA" | "DANIO_REPORTE";
+  title: string;
+  description: string;
+  severity: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  technicianAssigned?: string;
+  costEstimate?: number;
+  adminUserId?: string;
+  reportedByName?: string;
+}) {
+  const titleClean = formData.title.trim();
+  const descClean = formData.description.trim();
+  if (!titleClean || !descClean) {
+    return { success: false, error: "Título y descripción son requeridos para la novedad de mantenimiento." };
+  }
+
+  let auditorioId: string | null = null;
+  let equipamientoId: string | null = null;
+  let entityName = "Elemento";
+
+  if (formData.targetType === "AUDITORIO") {
+    auditorioId = formData.targetId;
+    const aud = await prisma.auditorio.findUnique({ where: { id: auditorioId } });
+    entityName = aud?.name || "Auditorio Magna Principal";
+    // Update auditorio status
+    await prisma.auditorio.update({
+      where: { id: auditorioId },
+      data: { status: "MAINTENANCE", isActive: false },
+    });
+  } else {
+    equipamientoId = formData.targetId;
+    const eq = await prisma.equipamiento.findUnique({ where: { id: equipamientoId } });
+    entityName = eq?.name || "Implemento";
+    // Update equipment status
+    await prisma.equipamiento.update({
+      where: { id: equipamientoId },
+      data: { status: "MAINTENANCE", availableQty: 0 },
+    });
+  }
+
+  const created = await prisma.registroMantenimiento.create({
+    data: {
+      type: formData.type,
+      targetType: formData.targetType,
+      auditorioId,
+      equipamientoId,
+      title: titleClean,
+      description: descClean,
+      severity: formData.severity || "MEDIA",
+      status: "EN_MANTENCION",
+      reportedBy: formData.reportedByName || "Administración / TI",
+      technicianAssigned: formData.technicianAssigned || "Mesa de Soporte Audiovisual",
+      costEstimate: formData.costEstimate || 0,
+      startDate: new Date(),
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "MANTENIMIENTO_INICIADO",
+      entity: formData.targetType === "AUDITORIO" ? "Auditorio" : "Equipamiento",
+      entityId: formData.targetId,
+      userId: formData.adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Puesto en mantenimiento: ${entityName}. Motivo: ${titleClean} (Severidad: ${formData.severity}).`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, item: created };
+}
+
+export async function resolveMantenimientoAction(
+  mantenimientoId: string,
+  resolutionNotes: string,
+  adminUserId?: string
+) {
+  const record = await prisma.registroMantenimiento.findUnique({
+    where: { id: mantenimientoId },
+    include: { auditorio: true, equipamiento: true },
+  });
+
+  if (!record) {
+    return { success: false, error: "Registro de mantenimiento no encontrado." };
+  }
+
+  const resolved = await prisma.registroMantenimiento.update({
+    where: { id: mantenimientoId },
+    data: {
+      status: "RESUELTO",
+      resolvedDate: new Date(),
+      resolutionNotes: resolutionNotes.trim() || "Mantenimiento y pruebas operacionales completadas con éxito.",
+    },
+  });
+
+  // Restore target entity to operational
+  if (record.targetType === "AUDITORIO" && record.auditorioId) {
+    await prisma.auditorio.update({
+      where: { id: record.auditorioId },
+      data: { status: "OPERATIONAL", isActive: true },
+    });
+  } else if (record.targetType === "EQUIPAMIENTO" && record.equipamientoId) {
+    const eq = await prisma.equipamiento.findUnique({ where: { id: record.equipamientoId } });
+    await prisma.equipamiento.update({
+      where: { id: record.equipamientoId },
+      data: { status: "AVAILABLE", availableQty: eq ? eq.totalQty : 1 },
+    });
+  }
+
+  const entityName = record.targetType === "AUDITORIO" ? record.auditorio?.name : record.equipamiento?.name;
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "MANTENIMIENTO_RESUELTO",
+      entity: record.targetType === "AUDITORIO" ? "Auditorio" : "Equipamiento",
+      entityId: (record.auditorioId || record.equipamientoId) as string,
+      userId: adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Mantenimiento resuelto: ${entityName}. Solución: ${resolutionNotes.trim() || "Completado y operativo"}.`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true, item: resolved };
+}
+
+export async function updateAuditorioStatusAction(
+  auditorioId: string,
+  newStatus: "OPERATIONAL" | "MAINTENANCE" | "PARTIAL_RESTRICTION",
+  reason: string,
+  adminUserId?: string
+) {
+  const aud = await prisma.auditorio.findUnique({ where: { id: auditorioId } });
+  if (!aud) return { success: false, error: "Auditorio no encontrado." };
+
+  const isActive = newStatus === "OPERATIONAL";
+  await prisma.auditorio.update({
+    where: { id: auditorioId },
+    data: { status: newStatus, isActive },
+  });
+
+  if (newStatus === "MAINTENANCE") {
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "AUDITORIO",
+        auditorioId,
+        title: "Puesta en Mantenimiento General de Auditorio",
+        description: reason.trim() || "Suspensión temporal de agenda para intervención y mejoras de recinto.",
+        severity: "ALTA",
+        status: "EN_MANTENCION",
+        reportedBy: "Administración Central",
+        technicianAssigned: "Mantención Infraestructura",
+        startDate: new Date(),
+      },
+    });
+  } else if (newStatus === "OPERATIONAL") {
+    await prisma.registroMantenimiento.updateMany({
+      where: { auditorioId, status: { not: "RESUELTO" } },
+      data: {
+        status: "RESUELTO",
+        resolvedDate: new Date(),
+        resolutionNotes: "Auditorio retornado a estado Operacional por el Administrador.",
+      },
+    });
+  }
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "AUDITORIO_ESTADO_CAMBIADO",
+      entity: "Auditorio",
+      entityId: auditorioId,
+      userId: adminUserId || null,
+      ipAddress: "127.0.0.1",
+      details: `Estado del auditorio cambiado a ${newStatus}. Razón: ${reason.trim() || "Gestión de operaciones"}`,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function createSuscripcionAction(formData: {
+  name: string;
+  email: string;
+  department: string;
+}) {
+  const emailClean = formData.email.trim().toLowerCase();
+  if (!emailClean || !formData.name.trim()) {
+    return { success: false, error: "Debe ingresar nombre y correo válidos." };
+  }
+
+  // Check if already subscribed in same department
+  const existing = await prisma.suscripcionArea.findFirst({
+    where: {
+      email: emailClean,
+      department: formData.department,
+    },
+  });
+
+  if (existing) {
+    return { success: false, error: "El correo ya está registrado en este departamento." };
+  }
+
+  const created = await prisma.suscripcionArea.create({
+    data: {
+      name: formData.name.trim(),
+      email: emailClean,
+      department: formData.department,
+      isActive: true,
+    },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "FUNCIONARIO_AGREGADO",
+      entity: "SuscripcionArea",
+      entityId: created.id,
+      ipAddress: "127.0.0.1",
+      details: `Funcionario agregado a cuadrilla ${formData.department}: ${formData.name} (${emailClean})`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true, item: created };
+}
+
+export async function updateSuscripcionAction(
+  id: string,
+  data: {
+    name: string;
+    email: string;
+    department: string;
+    isActive: boolean;
+  }
+): Promise<{ success: true; item: any } | { success: false; error: string }> {
+  try {
+    const updated = await prisma.suscripcionArea.update({
+      where: { id },
+      data: {
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        department: data.department,
+        isActive: data.isActive,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "FUNCIONARIO_MODIFICADO",
+        entity: "SuscripcionArea",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Datos actualizados: ${data.name} (${data.department}) - Activo: ${data.isActive}`,
+      },
+    });
+
+    revalidatePath("/");
+    return { success: true, item: updated };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar funcionario." };
+  }
+}
+
+export async function deleteSuscripcionAction(id: string) {
+  const item = await prisma.suscripcionArea.findUnique({ where: { id } });
+
+  await prisma.suscripcionArea.delete({
+    where: { id },
+  });
+
+  await prisma.registroAuditoria.create({
+    data: {
+      action: "FUNCIONARIO_ELIMINADO",
+      entity: "SuscripcionArea",
+      entityId: id,
+      ipAddress: "127.0.0.1",
+      details: `Eliminado funcionario ${item?.name || id} (${item?.department || "General"})`,
+    },
+  });
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// GESTOR DE CUENTAS DE USUARIO (RBAC ACCOUNT MANAGEMENT)
+// ---------------------------------------------------------------------------
+
+export async function createUserAction(data: {
+  name: string;
+  email: string;
+  password?: string;
+  role: string;
+  department?: string;
+  phone?: string;
+  priorityScore?: number;
+}): Promise<{ success: true; user: any } | { success: false; error: string }> {
+  try {
+    const emailNorm = data.email.trim().toLowerCase();
+    const existing = await prisma.user.findUnique({ where: { email: emailNorm } });
+    if (existing) {
+      return { success: false, error: "Ya existe un usuario con este correo electrónico." };
+    }
+
+    const rawPassword = data.password && data.password.trim().length >= 6 ? data.password.trim() : "Capstone2026!";
+    const passwordHash = await bcrypt.hash(rawPassword, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: data.name.trim(),
+        email: emailNorm,
+        passwordHash,
+        role: data.role || "PROFESSOR",
+        department: data.department?.trim() || null,
+        phone: data.phone?.trim() || null,
+        priorityScore: data.priorityScore ?? 100,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        phone: true,
+        priorityScore: true,
+        createdAt: true,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_CREADO",
+        entity: "User",
+        entityId: newUser.id,
+        ipAddress: "127.0.0.1",
+        details: `Nueva cuenta creada: ${newUser.name} (${newUser.email}) - Rol: ${newUser.role}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true, user: newUser };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al crear cuenta de usuario." };
+  }
+}
+
+export async function updateUserAction(
+  id: string,
+  data: {
+    name: string;
+    email: string;
+    role: string;
+    department?: string;
+    phone?: string;
+    priorityScore?: number;
+  }
+): Promise<{ success: true; user: any } | { success: false; error: string }> {
+  try {
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    const emailNorm = data.email.trim().toLowerCase();
+    if (emailNorm !== existing.email) {
+      const emailTaken = await prisma.user.findUnique({ where: { email: emailNorm } });
+      if (emailTaken) {
+        return { success: false, error: "El nuevo correo ya se encuentra en uso por otra cuenta." };
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: {
+        name: data.name.trim(),
+        email: emailNorm,
+        role: data.role,
+        department: data.department?.trim() || null,
+        phone: data.phone?.trim() || null,
+        priorityScore: data.priorityScore ?? existing.priorityScore,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        phone: true,
+        priorityScore: true,
+        createdAt: true,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_MODIFICADO",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Cuenta actualizada: ${updated.name} - Rol: ${updated.role} - Depto: ${updated.department || "N/A"}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true, user: updated };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar cuenta de usuario." };
+  }
+}
+
+export async function resetUserPasswordAction(
+  id: string,
+  newPassword: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    if (!newPassword || newPassword.trim().length < 6) {
+      return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "CLAVE_RESTABLECIDA",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Contraseña restablecida para el usuario: ${user.name} (${user.email})`,
+      },
+    });
+
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al restablecer contraseña." };
+  }
+}
+
+export async function deleteUserAction(
+  id: string,
+  callerEmail?: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return { success: false, error: "Usuario no encontrado." };
+    }
+
+    // Protection: NEVER delete Super Admin
+    if (user.email === "benjamin.navarrete@duocuc.cl" || user.role === "OWNER") {
+      return { success: false, error: "Protección de seguridad: No está permitido eliminar la cuenta del Super Administrador." };
+    }
+
+    const reservasCount = await prisma.reserva.count({ where: { userId: id } });
+    if (reservasCount > 0) {
+      return { 
+        success: false, 
+        error: `No se puede eliminar porque tiene ${reservasCount} reserva(s) asociadas. Puedes modificar su rol en lugar de borrar la cuenta.` 
+      };
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "USUARIO_ELIMINADO",
+        entity: "User",
+        entityId: id,
+        ipAddress: "127.0.0.1",
+        details: `Cuenta eliminada: ${user.name} (${user.email}) por ${callerEmail || "Admin"}`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al eliminar cuenta." };
+  }
+}
+
+
+
+// ---------------------------------------------------------------------------
+// HISTORIAL DE AUDITORÍA ESPECÍFICO POR CUENTA (LOGS DE USUARIO)
+// ---------------------------------------------------------------------------
+
+export async function getUserAuditLogsAction(userId: string, userEmail: string) {
+  try {
+    const logs = await prisma.registroAuditoria.findMany({
+      where: {
+        OR: [
+          { userId },
+          { entityId: userId },
+          { details: { contains: userEmail } },
+        ],
+      },
+      include: {
+        user: { select: { name: true, email: true, role: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 40,
+    });
+
+    return { success: true, logs };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al obtener historial de la cuenta.", logs: [] };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MOTOR RPA (ROBOTIC PROCESS AUTOMATION / AGENTE ROBÓTICO DE CONTINGENCIAS)
+// ---------------------------------------------------------------------------
+
+export interface RPAResult {
+  success: boolean;
+  timestamp: string;
+  noShowsCount: number;
+  autoCheckoutsCount: number;
+  predictiveAlertsCount: number;
+  details: string[];
+}
+
+export async function runRPAJobAction(triggeredBy?: string): Promise<RPAResult> {
+  const now = new Date();
+  const thirtyMinsAgo = new Date(now.getTime() - 30 * 60 * 1000);
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const details: string[] = [];
+
+  let noShowsCount = 0;
+  let autoCheckoutsCount = 0;
+  let predictiveAlertsCount = 0;
+
+  try {
+    // 1. RPA SUB-PROCESO 1: DETECCIÓN Y PENALIZACIÓN AUTOMÁTICA DE AUSENCIAS (NO-SHOW)
+    const overdueApproved = await prisma.reserva.findMany({
+      where: {
+        status: "APPROVED",
+        startTime: { lt: thirtyMinsAgo },
+      },
+      include: {
+        user: true,
+        auditorio: true,
+      },
+    });
+
+    for (const res of overdueApproved) {
+      await prisma.reserva.update({
+        where: { id: res.id },
+        data: {
+          status: "NO_SHOW",
+          notes: (res.notes || "") + ` [RPA BOT: Marcado como No-Show a las ${now.toLocaleTimeString("es-CL")} por inasistencia superior a 30 minutos]`,
+        },
+      });
+
+      // Penalización automática de priorityScore al docente
+      const newScore = Math.max(10, res.user.priorityScore - 15);
+      await prisma.user.update({
+        where: { id: res.userId },
+        data: { priorityScore: newScore },
+      });
+
+      // Liberar equipamiento asignado
+      await prisma.reservaEquipamiento.updateMany({
+        where: { reservaId: res.id },
+        data: { returned: true },
+      });
+
+      // Estampar en bitácora forense
+      await prisma.registroAuditoria.create({
+        data: {
+          action: "RPA_AUTO_CANCEL_NOSHOW",
+          entity: "Reserva",
+          entityId: res.id,
+          userId: res.userId,
+          ipAddress: "127.0.0.1 (RPA-DAEMON)",
+          details: `RPA Bot canceló reserva '${res.title}' en ${res.auditorio.name}. Docente penalizado a ${newScore} pts. Sala y hardware liberados.`,
+        },
+      });
+
+      noShowsCount++;
+      details.push(`No-Show detectado: '${res.title}' (${res.user.name}) - Sala liberada y score ajustado.`);
+    }
+
+    // 2. RPA SUB-PROCESO 2: CIERRE PREVENTIVO DE EVENTOS VENCIDOS (AUTO-CHECKOUT)
+    const overdueCheckedIn = await prisma.reserva.findMany({
+      where: {
+        status: "CHECKED_IN",
+        endTime: { lt: oneHourAgo },
+      },
+      include: {
+        auditorio: true,
+      },
+    });
+
+    for (const res of overdueCheckedIn) {
+      const checkoutTime = now;
+      await prisma.reserva.update({
+        where: { id: res.id },
+        data: {
+          status: "CHECKED_OUT",
+          checkoutTime,
+          notes: (res.notes || "") + ` [RPA BOT: Check-out preventivo automático tras vencer el horario del evento]`,
+        },
+      });
+
+      await prisma.reservaEquipamiento.updateMany({
+        where: { reservaId: res.id },
+        data: { returned: true },
+      });
+
+      await prisma.registroAuditoria.create({
+        data: {
+          action: "RPA_AUTO_CHECKOUT",
+          entity: "Reserva",
+          entityId: res.id,
+          ipAddress: "127.0.0.1 (RPA-DAEMON)",
+          details: `RPA Bot completó cierre preventivo del evento '${res.title}' en ${res.auditorio.name}. Stock de implementos retornado.`,
+        },
+      });
+
+      autoCheckoutsCount++;
+      details.push(`Cierre preventivo completado para '${res.title}' - Equipamiento devuelto a disponible.`);
+    }
+
+    // 3. RPA SUB-PROCESO 3: TELEMETRÍA PREDICTIVA DE IMPLEMENTOS CON FALLAS RECURRENTES
+    const equiposConFallas = await prisma.registroMantenimiento.groupBy({
+      by: ["equipamientoId"],
+      _count: { id: true },
+      where: {
+        equipamientoId: { not: null },
+      },
+    });
+
+    for (const eqGroup of equiposConFallas) {
+      if (eqGroup.equipamientoId && eqGroup._count.id >= 2) {
+        const eq = await prisma.equipamiento.findUnique({ where: { id: eqGroup.equipamientoId } });
+        if (eq) {
+          predictiveAlertsCount++;
+          details.push(`Telemetría predictiva: ${eq.name} acumula ${eqGroup._count.id} intervenciones técnicas. Sugerida mantención profunda.`);
+        }
+      }
+    }
+
+    // Estampar la ejecución del ciclo en la bitácora
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "RPA_CICLO_EJECUTADO",
+        entity: "Auditorio",
+        entityId: "system-rpa-core",
+        ipAddress: "127.0.0.1 (RPA-BOT)",
+        details: `Ciclo de RPA ejecutado por ${triggeredBy || "Daemon Autónomo"}. Resultados: ${noShowsCount} No-Shows mitigados, ${autoCheckoutsCount} Check-outs automáticos, ${predictiveAlertsCount} alertas predictivas.`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+
+    if (details.length === 0) {
+      details.push("Todos los recintos, eventos y cuadrillas operan en perfecta sincronía. Sin anomalías detectadas.");
+    }
+
+    return {
+      success: true,
+      timestamp: now.toLocaleString("es-CL"),
+      noShowsCount,
+      autoCheckoutsCount,
+      predictiveAlertsCount,
+      details,
+    };
+  } catch (err: any) {
+    console.error("Error en ciclo de RPA:", err);
+    return {
+      success: false,
+      timestamp: now.toLocaleString("es-CL"),
+      noShowsCount: 0,
+      autoCheckoutsCount: 0,
+      predictiveAlertsCount: 0,
+      details: [`Fallo en RPA: ${err?.message || "Error desconocido"}`],
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PLAN DE RESPUESTA A INCIDENTES (IRP) - DECLARACIÓN Y TRAZABILIDAD NIST SP 800-61
+// ---------------------------------------------------------------------------
+
+export async function declareIRPIncidentAction(data: {
+  title: string;
+  severity: "SEV-1" | "SEV-2" | "SEV-3" | "SEV-4";
+  description: string;
+  mitigationActions: string;
+  reportedBy: string;
+}): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    await prisma.registroAuditoria.create({
+      data: {
+        action: `IRP_${data.severity}_DECLARADO`,
+        entity: "Auditorio",
+        entityId: "incident-irp-protocol",
+        ipAddress: "127.0.0.1",
+        details: `[IRP ${data.severity}] ${data.title} - ${data.description}. Medidas de Contención: ${data.mitigationActions} (Declarado por: ${data.reportedBy})`,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al declarar incidente IRP." };
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// GESTION Y VERIFICACION DE EQUIPAMIENTO POR SOPORTE TI (EN TERRENO)
+// ---------------------------------------------------------------------------
+
+export async function toggleReservaEquipmentDeliveryAction(
+  reservaEquipamientoId: string,
+  field: "delivered" | "returned",
+  value: boolean,
+  tecnicoId?: string,
+  notes?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const item = await prisma.reservaEquipamiento.findUnique({
+      where: { id: reservaEquipamientoId },
+      include: { equipamiento: true, reserva: true },
+    });
+    if (!item) return { success: false, error: "Registro de equipamiento no encontrado." };
+
+    await prisma.reservaEquipamiento.update({
+      where: { id: reservaEquipamientoId },
+      data: {
+        [field]: value,
+        notes: notes !== undefined ? notes : item.notes,
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: field === "delivered" ? "EQUIPAMIENTO_VERIFICADO_TI" : "EQUIPAMIENTO_DEVUELTO_TI",
+        entity: "Equipamiento",
+        entityId: item.equipamientoId,
+        userId: tecnicoId || null,
+        ipAddress: "127.0.0.1",
+        details: `[Soporte TI] ${item.equipamiento.name} (${item.quantity} un.) marcado como ${
+          value ? (field === "delivered" ? "VERIFICADO Y ENTREGADO CONFORME EN SALA" : "DEVUELTO Y PROBADO CONFORME") : "PENDIENTE"
+        } para el evento "${item.reserva.title}".`,
+      },
+    });
+
+    revalidatePath("/tecnico");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al actualizar estado del equipo." };
+  }
+}
+
+export async function reportTechnicalIncidentAction(data: {
+  equipamientoId: string;
+  title: string;
+  description: string;
+  severity: "BAJA" | "MEDIA" | "ALTA" | "CRITICA";
+  reportedBy: string;
+  setInMaintenance?: boolean;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const eq = await prisma.equipamiento.findUnique({ where: { id: data.equipamientoId } });
+    if (!eq) return { success: false, error: "Equipo no encontrado." };
+
+    if (data.setInMaintenance) {
+      await prisma.equipamiento.update({
+        where: { id: data.equipamientoId },
+        data: {
+          status: "MAINTENANCE",
+          availableQty: 0,
+        },
+      });
+    }
+
+    await prisma.registroMantenimiento.create({
+      data: {
+        type: "CORRECTIVO",
+        targetType: "EQUIPAMIENTO",
+        equipamientoId: data.equipamientoId,
+        title: data.title.trim(),
+        description: data.description.trim(),
+        severity: data.severity,
+        status: "EN_MANTENCION",
+        reportedBy: data.reportedBy,
+        technicianAssigned: "Soporte TI en Terreno",
+        startDate: new Date(),
+      },
+    });
+
+    await prisma.registroAuditoria.create({
+      data: {
+        action: "INCIDENCIA_TECNICA_REPORTADA",
+        entity: "Equipamiento",
+        entityId: data.equipamientoId,
+        ipAddress: "127.0.0.1",
+        details: `[Alerta TI - Severidad ${data.severity}] ${data.title}: ${data.description}. (Equipo: ${eq.name}). Reportado por: ${data.reportedBy}.`,
+      },
+    });
+
+    revalidatePath("/tecnico");
+    revalidatePath("/admin");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Error al registrar incidencia tecnica." };
+  }
+}
