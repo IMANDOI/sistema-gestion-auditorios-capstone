@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+defaults:
+  run:
+    working-directory: objetos proyecto de titulo
+
 jobs:
   test-and-build:
     name: Verificación de Calidad y Compilación
@@ -19,9 +23,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: objetos proyecto de titulo/package-lock.json
 
       - name: Instalar Dependencias
-        run: npm install
+        run: npm ci
 
       - name: Generar Cliente Prisma
         run: npx prisma generate
@@ -31,4 +37,3 @@ jobs:
 
       - name: Ejecutar Suite de Pruebas Automatizadas ISO 25010
         run: npm test
-

@@ -1,4 +1,4 @@
-# Sistema Autónomo de Gestión Operativa, Trazabilidad, Analítica y Ciberseguridad para Auditorios
+# Sistema de Gestión y Control Operativo de Auditorios (SIGOA)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-15.1.12-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 15" />
@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-  <b>Portafolio de Título (Capstone - PTY4614 - 002D)</b><br>
+  <b>ASIGNATURA CAPSTONE (PTY4614 - 002D)</b><br>
   Escuela de Informática y Telecomunicaciones — <b>Duoc UC</b><br>
-  <b>Líder Técnico & Desarrollador Principal:</b> Benjamin Navarrete
+  <b>Estudiante Responsable:</b> Benjamin Navarrete · <b>Profesor Guía:</b> Diego Garcés M.
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 
 ## 📌 Resumen Ejecutivo del Proyecto
 
-El **Sistema Autónomo de Gestión Operativa de Auditorios** es una plataforma web reactiva de grado industrial y arquitectura desacoplada (*White-Label*), concebida para resolver la ineficiencia logística, el solapamiento de agendas y el desperdicio de horas de soporte técnico audiovisual en instituciones de educación superior y complejos corporativos.
+El **Sistema de Gestión y Control Operativo de Auditorios (SIGOA)** es una plataforma web full-stack cloud serverless (Arquitectura v2.0), concebida para resolver la ineficiencia logística, el solapamiento de agendas y el desperdicio de horas de soporte técnico audiovisual en Duoc UC.
 
 ### 🎯 Dolores Operacionales Resueltos
 1. **Eliminación del Cuello de Botella de TI:** Reduce el tiempo de espera pasiva del personal audiovisual de **hasta 1 hora a menos de 15 segundos** mediante validación presencial con **Pases QR criptográficos 2D** escaneables por cámara web o móvil con auto-apagado de stream.
